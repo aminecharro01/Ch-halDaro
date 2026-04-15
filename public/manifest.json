@@ -1,0 +1,16 @@
+{
+  "name": "ch'hal Daro",
+  "short_name": "ch'hal Daro",
+  "description": "Football Live Score Web Application with AI",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#0a0a0a",
+  "theme_color": "#22c55e",
+  "icons": [
+    {
+      "src": "/icon.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    }
+  ]
+}
