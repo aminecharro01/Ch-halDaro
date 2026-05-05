@@ -44,7 +44,8 @@ A stunning full-stack football live score web application built with Next.js 15,
 
 ## Deployment
 This application is optimized for Vercel.
-- The included `vercel.json` operates `/api/notify` on a cron-job lifecycle to check for live football data changes.
+- The included `vercel.json` is set to a daily cron schedule (`0 0 * * *`) to comply with the **Vercel Hobby Plan** limits. 
+- **Note**: Frequent notifications (e.g., every minute) require a Vercel Pro plan or an external pinger (like UptimeRobot) to hit the `/api/notify` endpoint.
 
 ## License
 MIT
