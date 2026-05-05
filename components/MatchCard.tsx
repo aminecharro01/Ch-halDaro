@@ -1,26 +1,68 @@
 "use client";
 
 import Link from 'next/link';
+import { Heart } from 'lucide-react';
+import useSWR, { mutate } from 'swr';
+import { useState } from 'react';
+
+const fetcher = (url: string) => fetch(url).then(res => res.json());
 
 export function MatchCard({ match }: { match: any }) {
   const isLive = ['1H', '2H', 'HT', 'ET', 'P'].includes(match.fixture.status.short);
   const isFinished = ['FT', 'AET', 'PEN'].includes(match.fixture.status.short);
   const isNotStarted = match.fixture.status.short === 'NS';
 
-  return (
-    <div className="relative group animate-fade-up bg-gray-900/50 backdrop-blur-sm border border-gray-800/60 rounded-2xl p-4 hover:bg-gray-800/80 hover:border-gray-700 transition-all duration-300">
-      <button 
-        className="absolute top-4 right-4 text-gray-600 hover:text-red-500 transition-colors z-10"
-        title="Follow Team"
-      >
-        <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
-        </svg>
-      </button>
+  // We'll track favorites for teams (home or away) or the match league
+  // For simplicity, let's allow favoriting the home team from the card
+  const itemId = match.teams.home.id.toString();
+  const itemType = 'team';
 
-      <Link href={`/match/${match.fixture.id}`} className="block">
-        <div className="flex justify-between items-center mb-4">
-          <span className="text-xs font-semibold text-gray-500 uppercase tracking-wider">{match.league.name}</span>
+  const { data: favorites } = useSWR('/api/favorites', fetcher);
+  const [isToggling, setIsToggling] = useState(false);
+
+  const isFavorited = Array.isArray(favorites) && favorites.some(
+    (f: any) => f.item_id === itemId && f.item_type === itemType
+  );
+
+  const toggleFavorite = async (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    
+    if (!favorites || favorites.error) {
+      window.location.href = '/login';
+      return;
+    }
+
+    setIsToggling(true);
+    const method = isFavorited ? 'DELETE' : 'POST';
+    
+    try {
+      const res = await fetch('/api/favorites', {
+        method,
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ itemId, itemType }),
+      });
+      
+      if (res.ok) {
+        mutate('/api/favorites');
+      }
+    } catch (err) {
+      console.error('Failed to toggle favorite:', err);
+    } finally {
+      setIsToggling(false);
+    }
+  };
+
+  return (
+    <div className="relative group animate-fade-up bg-gray-900/40 backdrop-blur-md shadow-lg border border-white/10 rounded-2xl p-4 hover:bg-gray-800/60 hover:shadow-xl transition-all duration-300 overflow-hidden">
+      {/* League Logo Watermark */}
+      <div className="absolute -bottom-4 -right-4 opacity-[0.05] pointer-events-none transform -rotate-12 transition-transform group-hover:rotate-0 duration-700">
+        <img src={match.league.logo} alt="" className="w-24 h-24 object-contain grayscale" />
+      </div>
+
+      <div className="flex justify-between items-center mb-4 relative z-10">
+        <span className="text-xs font-bold text-gray-400 uppercase tracking-wider">{match.league.name}</span>
+        <div className="flex items-center gap-3">
           {isLive ? (
             <div className="flex items-center gap-2">
               <span className="relative flex h-2 w-2">
@@ -38,15 +80,30 @@ export function MatchCard({ match }: { match: any }) {
           ) : (
             <span className="text-xs font-bold text-gray-400">{match.fixture.status.short}</span>
           )}
+          
+          <button 
+            onClick={toggleFavorite}
+            disabled={isToggling}
+            className={`transition-all duration-300 transform active:scale-125 p-1 rounded-full hover:bg-white/20 ${
+              isFavorited 
+                ? 'text-red-500 fill-red-500' 
+                : 'text-gray-500 hover:text-red-400'
+            }`}
+            title={isFavorited ? "Unfollow Team" : "Follow Team"}
+          >
+            <Heart className={`h-5 w-5 ${isFavorited ? 'fill-current' : ''}`} />
+          </button>
         </div>
+      </div>
 
+      <Link href={`/match/${match.fixture.id}`} className="block relative z-10">
         <div className="space-y-3">
           <div className="flex justify-between items-center">
             <div className="flex items-center gap-3">
               <img src={match.teams.home.logo} alt={match.teams.home.name} className="w-8 h-8 object-contain drop-shadow" />
-              <span className="font-semibold text-gray-100">{match.teams.home.name}</span>
+              <span className="font-bold text-gray-100">{match.teams.home.name}</span>
             </div>
-            <span className={`text-2xl font-bold ${isLive ? 'text-white' : 'text-gray-300'}`}>
+            <span className={`text-2xl font-black ${isLive ? 'text-white' : 'text-gray-300'}`}>
               {match.goals.home ?? '-'}
             </span>
           </div>
@@ -54,9 +111,9 @@ export function MatchCard({ match }: { match: any }) {
           <div className="flex justify-between items-center">
             <div className="flex items-center gap-3">
               <img src={match.teams.away.logo} alt={match.teams.away.name} className="w-8 h-8 object-contain drop-shadow" />
-              <span className="font-semibold text-gray-100">{match.teams.away.name}</span>
+              <span className="font-bold text-gray-100">{match.teams.away.name}</span>
             </div>
-            <span className={`text-2xl font-bold ${isLive ? 'text-white' : 'text-gray-300'}`}>
+            <span className={`text-2xl font-black ${isLive ? 'text-white' : 'text-gray-300'}`}>
               {match.goals.away ?? '-'}
             </span>
           </div>

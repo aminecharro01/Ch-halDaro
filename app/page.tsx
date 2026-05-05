@@ -4,11 +4,13 @@ import useSWR from 'swr';
 import { useState } from 'react';
 import { MatchCard } from '@/components/MatchCard';
 import { LiveBadge } from '@/components/LiveBadge';
+import { Sidebar } from '@/components/Sidebar';
 
 const fetcher = (url: string) => fetch(url).then(res => res.json());
 
 const LEAGUES = [
   { id: 'all', name: 'All' },
+  { id: 2, name: 'Champions League' },
   { id: 39, name: 'Premier League' },
   { id: 140, name: 'La Liga' },
   { id: 135, name: 'Serie A' },
@@ -19,7 +21,6 @@ const LEAGUES = [
 export default function Home() {
   const [activeLeague, setActiveLeague] = useState<string | number>('all');
   
-  // Poll every 60s. Auto-pauses on background (revalidateOnFocus handles returns).
   const { data, error, isLoading } = useSWR('/api/scores', fetcher, { 
     refreshInterval: 60000,
     revalidateOnFocus: true
@@ -35,65 +36,71 @@ export default function Home() {
   const otherMatches = filteredMatches.filter((m: any) => !['1H', '2H', 'HT', 'ET', 'P'].includes(m.fixture.status.short));
 
   return (
-    <div className="space-y-8">
-      <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-hide">
-        {LEAGUES.map(league => (
-          <button
-            key={league.id}
-            onClick={() => setActiveLeague(league.id)}
-            className={`whitespace-nowrap px-4 py-2 rounded-full text-sm font-medium transition-colors ${
-              activeLeague === league.id 
-              ? 'bg-white text-black' 
-              : 'bg-gray-900 border border-gray-800 text-gray-400 hover:text-white'
-            }`}
-          >
-            {league.name}
-          </button>
-        ))}
-      </div>
+    <div className="flex flex-col lg:flex-row gap-8">
+      {/* Sidebar */}
+      <Sidebar />
 
-      {isLoading ? (
-        <div className="space-y-4">
-          <div className="h-32 bg-gray-900 rounded-2xl animate-pulse"></div>
-          <div className="h-32 bg-gray-900 rounded-2xl animate-pulse"></div>
+      {/* Main Feed */}
+      <div className="flex-1 space-y-8 min-w-0">
+        <div className="flex gap-3 overflow-x-auto pb-2 scrollbar-hide">
+          {LEAGUES.map(league => (
+            <button
+              key={league.id}
+              onClick={() => setActiveLeague(league.id)}
+              className={`whitespace-nowrap px-5 py-2.5 rounded-full text-sm font-bold shadow-sm transition-all border ${
+                activeLeague === league.id 
+                ? 'bg-white text-black border-transparent shadow-md transform scale-105' 
+                : 'bg-gray-900/40 border-white/10 text-gray-400 hover:bg-gray-800/60'
+              }`}
+            >
+              {league.name}
+            </button>
+          ))}
         </div>
-      ) : error || data?.error ? (
-        <div className="text-red-400 text-center py-10 bg-red-950/20 rounded-2xl">
-          {data?.error ? `Error: ${data.error}` : 'Error loading matches.'}
-        </div>
-      ) : (
-        <>
-          {liveMatches.length > 0 && (
+
+        {isLoading ? (
+          <div className="space-y-4">
+            <div className="h-32 bg-gray-900/20 backdrop-blur-sm rounded-2xl animate-pulse"></div>
+            <div className="h-32 bg-gray-900/20 backdrop-blur-sm rounded-2xl animate-pulse"></div>
+          </div>
+        ) : error || data?.error ? (
+          <div className="text-red-500 font-bold text-center py-10 bg-red-950/20 backdrop-blur-md rounded-2xl border border-red-900/50">
+            {data?.error ? `Error: ${data.error}` : 'Error loading matches.'}
+          </div>
+        ) : (
+          <>
+            {liveMatches.length > 0 && (
+              <section>
+                <div className="flex items-center gap-3 mb-5">
+                  <LiveBadge />
+                  <h2 className="text-2xl font-black text-white tracking-tight">Live Now</h2>
+                </div>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  {liveMatches.map((match: any) => (
+                    <MatchCard key={match.fixture.id} match={match} />
+                  ))}
+                </div>
+              </section>
+            )}
+
             <section>
-              <div className="flex items-center gap-3 mb-4">
-                <LiveBadge />
-                <h2 className="text-xl font-bold">Live Now</h2>
-              </div>
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                {liveMatches.map((match: any) => (
+              <h2 className="text-xl font-bold mb-5 text-gray-300">
+                {activeLeague === 'all' ? "Today's Matches" : LEAGUES.find(l => l.id === activeLeague)?.name}
+              </h2>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {otherMatches.map((match: any) => (
                   <MatchCard key={match.fixture.id} match={match} />
                 ))}
+                {otherMatches.length === 0 && (
+                  <div className="col-span-full py-16 text-center bg-white/5 backdrop-blur-sm rounded-2xl border border-white/5">
+                    <p className="text-gray-500 font-medium">No other matches today.</p>
+                  </div>
+                )}
               </div>
             </section>
-          )}
-
-          <section>
-            <h2 className="text-xl font-bold mb-4 text-gray-300">
-              {activeLeague === 'all' ? "Today's Matches" : LEAGUES.find(l => l.id === activeLeague)?.name}
-            </h2>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-              {otherMatches.map((match: any) => (
-                <MatchCard key={match.fixture.id} match={match} />
-              ))}
-              {otherMatches.length === 0 && (
-                <div className="col-span-full py-12 text-center text-gray-500">
-                  No other matches today.
-                </div>
-              )}
-            </div>
-          </section>
-        </>
-      )}
+          </>
+        )}
+      </div>
     </div>
   );
 }

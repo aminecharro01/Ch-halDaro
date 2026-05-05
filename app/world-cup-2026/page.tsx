@@ -1,6 +1,25 @@
-export default function WorldCup() {
-  // Static mock since 2026 hasn't happened. In reality you'd SWR fetch the groups.
-  const groups = Array.from({ length: 12 }).map((_, i) => String.fromCharCode(65 + i));
+import { fetchFootballApi } from '@/lib/api-football';
+import Image from 'next/image';
+
+export default async function WorldCup() {
+  // Fetch tournament standings
+  let standings = [];
+  try {
+    const data = await fetchFootballApi('/standings', { league: '1', season: '2022' });
+    if (data && data[0] && data[0].league && data[0].league.standings) {
+      standings = data[0].league.standings;
+    }
+  } catch (e) {
+    console.error("Failed to fetch WC standings", e);
+  }
+
+  // Fallback if no data
+  const groups = standings.length > 0 ? standings : Array.from({ length: 8 }).map((_, i) => [
+    { team: { name: 'TBD 1' }, points: 0, goalsDiff: 0 },
+    { team: { name: 'TBD 2' }, points: 0, goalsDiff: 0 },
+    { team: { name: 'TBD 3' }, points: 0, goalsDiff: 0 },
+    { team: { name: 'TBD 4' }, points: 0, goalsDiff: 0 },
+  ]);
 
   return (
     <div className="space-y-8 animate-fade-up">
@@ -16,17 +35,28 @@ export default function WorldCup() {
           Group Stage
         </h2>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-          {groups.map(group => (
-            <div key={group} className="bg-gray-900 border border-gray-800 rounded-xl p-4 opacity-50 grayscale hover:grayscale-0 hover:opacity-100 transition duration-500">
-              <h3 className="font-bold text-gray-400 mb-3 border-b border-gray-800 pb-2">Group {group}</h3>
-              <ul className="space-y-2 text-sm">
-                <li className="flex justify-between text-gray-500"><span>TBD 1</span> <span>0</span></li>
-                <li className="flex justify-between text-gray-500"><span>TBD 2</span> <span>0</span></li>
-                <li className="flex justify-between text-gray-500"><span>TBD 3</span> <span>0</span></li>
-                <li className="flex justify-between text-gray-500"><span>TBD 4</span> <span>0</span></li>
-              </ul>
-            </div>
-          ))}
+          {groups.map((group: any, idx: number) => {
+            const groupName = group[0]?.group || `Group ${String.fromCharCode(65 + idx)}`;
+            return (
+              <div key={idx} className="bg-gray-900 border border-gray-800 rounded-xl p-4 transition duration-500">
+                <h3 className="font-bold text-gray-400 mb-3 border-b border-gray-800 pb-2">{groupName}</h3>
+                <ul className="space-y-2 text-sm">
+                  {group.map((row: any, i: number) => (
+                    <li key={i} className="flex justify-between items-center text-gray-300">
+                      <div className="flex items-center gap-2">
+                        {row.team.logo && <Image src={row.team.logo} alt={row.team.name} width={16} height={16} className="w-4 h-4 object-contain" />}
+                        <span>{row.team.name}</span>
+                      </div>
+                      <div className="flex gap-2">
+                        <span className="text-gray-500 text-xs w-4 text-right" title="Goal Difference">{row.goalsDiff > 0 ? `+${row.goalsDiff}` : row.goalsDiff}</span>
+                        <span className="font-bold w-4 text-right">{row.points}</span>
+                      </div>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            );
+          })}
         </div>
       </section>
 

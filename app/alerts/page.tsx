@@ -6,7 +6,7 @@ export default function AlertsPage() {
   const [prefs, setPrefs] = useState({ goals: true, cards: true, kickoff: true });
 
   useEffect(() => {
-    // mock read from local storage
+    // Load preferences
     const stored = localStorage.getItem("followed_teams");
     if (stored) setFollowed(JSON.parse(stored));
   }, []);
@@ -60,7 +60,7 @@ export default function AlertsPage() {
           <span>✈️</span> Telegram Bot
         </h2>
         <p className="text-sm text-gray-400 mb-6">Prefer Telegram? Link your account to our official bot for instant updates.</p>
-        <a href="https://t.me/placeholder_bot" target="_blank" rel="noreferrer" className="inline-flex items-center gap-2 bg-[#24A1DE] text-white font-bold px-5 py-2.5 rounded-lg hover:bg-[#1d8ec7] transition">
+        <a href="https://t.me/ChhalDaroBot" target="_blank" rel="noreferrer" className="inline-flex items-center gap-2 bg-[#24A1DE] text-white font-bold px-5 py-2.5 rounded-lg hover:bg-[#1d8ec7] transition">
           Open Telegram
         </a>
       </div>

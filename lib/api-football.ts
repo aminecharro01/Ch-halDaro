@@ -10,7 +10,7 @@ export const fetchFootballApi = async (endpoint: string, params: Record<string, 
     headers: {
       'x-apisports-key': API_KEY || "",
     },
-    cache: 'no-store'
+    next: { revalidate: 60 }
   });
 
   if (response.status === 429) {

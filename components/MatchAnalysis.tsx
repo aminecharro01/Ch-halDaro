@@ -1,7 +1,7 @@
 "use client";
 import { useEffect, useState } from 'react';
 
-export function AIAnalysis({ matchData }: { matchData: any }) {
+export function MatchAnalysis({ matchData }: { matchData: any }) {
   const [analysis, setAnalysis] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
 
@@ -40,7 +40,7 @@ export function AIAnalysis({ matchData }: { matchData: any }) {
           localStorage.setItem(`analysis_${matchData.fixture.id}`, data.analysis);
         }
       } catch (err) {
-        console.error("AI Analysis failed", err);
+        console.error("Analysis failed", err);
       } finally {
         setLoading(false);
       }
@@ -52,11 +52,8 @@ export function AIAnalysis({ matchData }: { matchData: any }) {
 
   return (
     <div className="bg-gradient-to-br from-indigo-950/40 to-blue-900/10 border border-indigo-500/20 rounded-2xl p-5 relative overflow-hidden mt-6 animate-fade-up">
-      <div className="absolute top-0 right-0 bg-indigo-500 text-[10px] px-2 py-1 font-bold text-white tracking-widest rounded-bl-lg drop-shadow-md">
-        GEMINI AI
-      </div>
       <h3 className="text-lg font-bold mb-3 flex items-center gap-2 text-indigo-100">
-        <span className="text-indigo-400">✨</span> Match Analysis
+        <span className="text-indigo-400">📊</span> Match Insights
       </h3>
       {loading ? (
         <div className="space-y-3 animate-pulse">
@@ -67,7 +64,7 @@ export function AIAnalysis({ matchData }: { matchData: any }) {
       ) : analysis ? (
         <div className="text-gray-300 text-sm leading-relaxed whitespace-pre-wrap">{analysis}</div>
       ) : (
-        <div className="text-gray-500 text-sm">Analysis unavailable.</div>
+        <div className="text-gray-500 text-sm">Insights unavailable.</div>
       )}
     </div>
   );

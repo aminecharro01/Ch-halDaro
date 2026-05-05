@@ -4,7 +4,8 @@ import { use } from 'react';
 import { EventTimeline } from '@/components/EventTimeline';
 import { StatBar } from '@/components/StatBar';
 import { PredictionPanel } from '@/components/PredictionPanel';
-import { AIAnalysis } from '@/components/AIAnalysis';
+import { MatchAnalysis } from '@/components/MatchAnalysis';
+import Image from 'next/image';
 
 const fetcher = (url: string) => fetch(url).then(res => res.json());
 
@@ -43,7 +44,7 @@ export default function MatchPage({ params }: { params: Promise<{ id: string }> 
         </div>
         <div className="flex justify-center items-center gap-4 md:gap-12 mt-4">
           <div className="flex flex-col items-center gap-3 flex-1">
-            <img src={match.teams.home.logo} alt={match.teams.home.name} className="w-16 h-16 md:w-20 md:h-20 object-contain drop-shadow-lg" />
+            <Image src={match.teams.home.logo} alt={match.teams.home.name} width={80} height={80} className="w-16 h-16 md:w-20 md:h-20 object-contain drop-shadow-lg" />
             <span className="font-bold text-lg md:text-xl text-gray-100">{match.teams.home.name}</span>
           </div>
           <div className="flex flex-col items-center w-24 flex-shrink-0">
@@ -64,7 +65,7 @@ export default function MatchPage({ params }: { params: Promise<{ id: string }> 
             </div>
           </div>
           <div className="flex flex-col items-center gap-3 flex-1">
-            <img src={match.teams.away.logo} alt={match.teams.away.name} className="w-16 h-16 md:w-20 md:h-20 object-contain drop-shadow-lg" />
+            <Image src={match.teams.away.logo} alt={match.teams.away.name} width={80} height={80} className="w-16 h-16 md:w-20 md:h-20 object-contain drop-shadow-lg" />
             <span className="font-bold text-lg md:text-xl text-gray-100">{match.teams.away.name}</span>
           </div>
         </div>
@@ -131,8 +132,33 @@ export default function MatchPage({ params }: { params: Promise<{ id: string }> 
         </div>
       </div>
 
+      {data.injuries.length > 0 && (
+        <div className="bg-red-500/5 border border-red-500/20 rounded-3xl p-6">
+          <h3 className="text-xs font-bold text-red-500 uppercase tracking-widest mb-4 flex items-center gap-2">
+            <span>🏥</span> Match Injuries
+          </h3>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {data.injuries.map((injury: any, idx: number) => (
+              <div key={idx} className="flex items-center gap-3 bg-white/5 dark:bg-black/20 p-3 rounded-xl border border-white/10 dark:border-white/5">
+                <div className="relative">
+                  <Image src={injury.player.photo} width={40} height={40} className="w-10 h-10 rounded-full border border-gray-800" alt="" />
+                  <span className="absolute -bottom-1 -right-1 text-xs">⚠️</span>
+                </div>
+                <div>
+                  <div className="font-bold text-sm text-gray-200">{injury.player.name}</div>
+                  <div className="text-[10px] text-gray-500 uppercase font-bold flex gap-2">
+                    <span>{injury.team.name}</span>
+                    <span className="text-red-400">{injury.player.type || 'Injured'}</span>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
       {isNotStarted && <PredictionPanel fixtureId={id} />}
-      {!isNotStarted && match.fixture.status.short === 'FT' && <AIAnalysis matchData={data} />}
+      {!isNotStarted && match.fixture.status.short === 'FT' && <MatchAnalysis matchData={data} />}
     </div>
   );
 }
