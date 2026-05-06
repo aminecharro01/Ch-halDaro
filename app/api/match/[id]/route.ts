@@ -8,11 +8,11 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
     
     // According to documentation, we can parallelize these requests
     const [fixtureData, lineupsData, eventsData, statsData, injuriesData] = await Promise.all([
-      fetchFootballApi('/fixtures', { id }),
-      fetchFootballApi('/fixtures/lineups', { fixture: id }),
-      fetchFootballApi('/fixtures/events', { fixture: id }),
-      fetchFootballApi('/fixtures/statistics', { fixture: id }),
-      fetchFootballApi('/fixtures/injuries', { fixture: id })
+      fetchFootballApi('/fixtures', { id }).catch(err => { console.error("Fixture fail", err); return []; }),
+      fetchFootballApi('/fixtures/lineups', { fixture: id }).catch(() => []),
+      fetchFootballApi('/fixtures/events', { fixture: id }).catch(() => []),
+      fetchFootballApi('/fixtures/statistics', { fixture: id }).catch(() => []),
+      fetchFootballApi('/fixtures/injuries', { fixture: id }).catch(() => [])
     ]);
 
     const data = {

@@ -18,8 +18,14 @@ export default function MatchPage({ params }: { params: Promise<{ id: string }> 
     revalidateOnFocus: true
   });
 
+  const apiError = data?.error || error?.message;
   if (isLoading) return <div className="text-center py-20 text-gray-500 animate-pulse">Loading match details...</div>;
-  if (error || !data?.fixture) return <div className="text-center py-20 text-red-500">Error loading match.</div>;
+  if (apiError || !data?.fixture) return (
+    <div className="text-center py-20">
+      <div className="text-red-500 font-bold mb-2">Error loading match.</div>
+      {apiError && <div className="text-xs text-gray-500">{apiError}</div>}
+    </div>
+  );
 
   const match = data.fixture;
   const isLive = ['1H', '2H', 'HT', 'ET', 'P'].includes(match.fixture.status.short);
