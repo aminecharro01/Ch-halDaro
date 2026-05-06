@@ -28,8 +28,8 @@ export default function MatchPage({ params }: { params: Promise<{ id: string }> 
   );
 
   const match = data.fixture;
-  const isLive = ['1H', '2H', 'HT', 'ET', 'P'].includes(match.fixture.status.short);
-  const isNotStarted = match.fixture.status.short === 'NS';
+  const isLive = ['1H', '2H', 'HT', 'ET', 'P'].includes(match.fixture?.status?.short);
+  const isNotStarted = match.fixture?.status?.short === 'NS';
   const stats = data.statistics || [];
   
   const homeStats = stats.find((s: any) => s.team.id === match.teams.home.id)?.statistics || [];
@@ -164,7 +164,7 @@ export default function MatchPage({ params }: { params: Promise<{ id: string }> 
       )}
 
       {isNotStarted && <PredictionPanel fixtureId={id} />}
-      {!isNotStarted && ['FT', 'AET', 'PEN'].includes(match.fixture.status.short) && <MatchAnalysis matchData={data} />}
+      {!isNotStarted && ['FT', 'AET', 'PEN'].includes(match.fixture?.status?.short) && <MatchAnalysis matchData={data} />}
     </div>
   );
 }

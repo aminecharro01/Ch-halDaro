@@ -8,9 +8,9 @@ import { useState } from 'react';
 const fetcher = (url: string) => fetch(url).then(res => res.json());
 
 export function MatchCard({ match }: { match: any }) {
-  const isLive = ['1H', '2H', 'HT', 'ET', 'P'].includes(match.fixture.status.short);
-  const isFinished = ['FT', 'AET', 'PEN'].includes(match.fixture.status.short);
-  const isNotStarted = match.fixture.status.short === 'NS';
+  const isLive = ['1H', '2H', 'HT', 'ET', 'P'].includes(match.fixture?.status?.short);
+  const isFinished = ['FT', 'AET', 'PEN'].includes(match.fixture?.status?.short);
+  const isNotStarted = match.fixture?.status?.short === 'NS';
 
   // We'll track favorites for teams (home or away) or the match league
   // For simplicity, let's allow favoriting the home team from the card
