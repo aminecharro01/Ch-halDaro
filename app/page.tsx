@@ -20,8 +20,9 @@ const LEAGUES = [
 
 export default function Home() {
   const [activeLeague, setActiveLeague] = useState<string | number>('all');
+  const [activeDate, setActiveDate] = useState(new Date().toISOString().split('T')[0]);
   
-  const { data, error, isLoading } = useSWR('/api/scores', fetcher, { 
+  const { data, error, isLoading } = useSWR(`/api/scores?date=${activeDate}`, fetcher, { 
     refreshInterval: 60000,
     revalidateOnFocus: true
   });
@@ -35,6 +36,14 @@ export default function Home() {
   const liveMatches = filteredMatches.filter((m: any) => ['1H', '2H', 'HT', 'ET', 'P'].includes(m.fixture.status.short));
   const otherMatches = filteredMatches.filter((m: any) => !['1H', '2H', 'HT', 'ET', 'P'].includes(m.fixture.status.short));
 
+  const changeDate = (days: number) => {
+    const d = new Date(activeDate);
+    d.setDate(d.getDate() + days);
+    setActiveDate(d.toISOString().split('T')[0]);
+  };
+
+  const isToday = activeDate === new Date().toISOString().split('T')[0];
+
   return (
     <div className="flex flex-col lg:flex-row gap-8">
       {/* Sidebar */}
@@ -42,20 +51,43 @@ export default function Home() {
 
       {/* Main Feed */}
       <div className="flex-1 space-y-8 min-w-0">
-        <div className="flex gap-3 overflow-x-auto pb-2 scrollbar-hide">
-          {LEAGUES.map(league => (
-            <button
-              key={league.id}
-              onClick={() => setActiveLeague(league.id)}
-              className={`whitespace-nowrap px-5 py-2.5 rounded-full text-sm font-bold shadow-sm transition-all border ${
-                activeLeague === league.id 
-                ? 'bg-white text-black border-transparent shadow-md transform scale-105' 
-                : 'bg-gray-900/40 border-white/10 text-gray-400 hover:bg-gray-800/60'
-              }`}
+        <div className="flex flex-col gap-4">
+          <div className="flex items-center gap-4 bg-gray-900/40 p-2 rounded-2xl border border-white/5 self-start">
+            <button 
+              onClick={() => changeDate(-1)}
+              className="px-4 py-2 text-xs font-bold text-gray-400 hover:text-white transition-colors"
             >
-              {league.name}
+              Yesterday
             </button>
-          ))}
+            <button 
+              onClick={() => setActiveDate(new Date().toISOString().split('T')[0])}
+              className={`px-4 py-2 text-xs font-bold rounded-xl transition-all ${isToday ? 'bg-white text-black' : 'text-gray-400 hover:text-white'}`}
+            >
+              Today
+            </button>
+            <button 
+              onClick={() => changeDate(1)}
+              className="px-4 py-2 text-xs font-bold text-gray-400 hover:text-white transition-colors"
+            >
+              Tomorrow
+            </button>
+          </div>
+
+          <div className="flex gap-3 overflow-x-auto pb-2 scrollbar-hide">
+            {LEAGUES.map(league => (
+              <button
+                key={league.id}
+                onClick={() => setActiveLeague(league.id)}
+                className={`whitespace-nowrap px-5 py-2.5 rounded-full text-sm font-bold shadow-sm transition-all border ${
+                  activeLeague === league.id 
+                  ? 'bg-white text-black border-transparent shadow-md transform scale-105' 
+                  : 'bg-gray-900/40 border-white/10 text-gray-400 hover:bg-gray-800/60'
+                }`}
+              >
+                {league.name}
+              </button>
+            ))}
+          </div>
         </div>
 
         {isLoading ? (
