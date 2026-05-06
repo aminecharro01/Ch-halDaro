@@ -26,6 +26,6 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
     return NextResponse.json(data);
   } catch (error: any) {
     console.error("API Match Error:", error);
-    return NextResponse.json({ error: error.message }, { status: 500 });
+    return NextResponse.json({ error: error.message || "Unknown error" }, { status: 500 });
   }
 }

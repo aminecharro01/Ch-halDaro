@@ -5,13 +5,19 @@ export const fetchFootballApi = async (endpoint: string, params: Record<string, 
   const url = new URL(`${BASE_URL}${endpoint}`);
   Object.keys(params).forEach(key => url.searchParams.append(key, params[key]));
 
-  const response = await fetch(url.toString(), {
-    method: 'GET',
-    headers: {
-      'x-apisports-key': API_KEY || "",
-    },
-    next: { revalidate: 60 }
-  });
+  let response;
+  try {
+    response = await fetch(url.toString(), {
+      method: 'GET',
+      headers: {
+        'x-apisports-key': API_KEY || "",
+      },
+      next: { revalidate: 60 }
+    });
+  } catch (fetchErr: any) {
+    console.error("Fetch failed", fetchErr);
+    throw new Error(`Connection failed: ${fetchErr.message}`);
+  }
 
   if (response.status === 429) {
     console.warn("Rate limit hit! Returning mock data...");
@@ -47,5 +53,14 @@ export const fetchFootballApi = async (endpoint: string, params: Record<string, 
   }
 
   const data = await response.json();
-  return data.response;
+  
+  if (data.errors && Object.keys(data.errors).length > 0) {
+    const errorMsg = JSON.stringify(data.errors);
+    console.error(`API Football Error Data: ${errorMsg}`);
+    // If it's a specific error we can handle, do it here. 
+    // Otherwise, throw so the route catches it.
+    throw new Error(errorMsg);
+  }
+
+  return data.response || [];
 };

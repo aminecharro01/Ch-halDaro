@@ -27,8 +27,9 @@ export default function Home() {
     revalidateOnFocus: true
   });
 
-  const rawMatches = Array.isArray(data) ? data : (data?.response || []);
+  const rawMatches = data?.response || (Array.isArray(data) ? data : []);
   const matches = Array.isArray(rawMatches) ? rawMatches : [];
+  const apiError = data?.error || error?.message;
   
   const filteredMatches = activeLeague === 'all' 
     ? matches 
@@ -98,9 +99,9 @@ export default function Home() {
               <div key={i} className="h-32 bg-gray-900/20 backdrop-blur-sm rounded-2xl animate-pulse"></div>
             ))}
           </div>
-        ) : error || data?.error ? (
+        ) : apiError ? (
           <div className="text-red-500 font-bold text-center py-10 bg-red-950/20 backdrop-blur-md rounded-2xl border border-red-900/50">
-            {data?.error ? `Error: ${data.error}` : 'Error loading matches.'}
+            Error: {apiError}
           </div>
         ) : (
           <>

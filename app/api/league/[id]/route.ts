@@ -22,6 +22,6 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
     });
   } catch (err: any) {
     console.error("League API Error", err);
-    return NextResponse.json({ error: err.message }, { status: 500 });
+    return NextResponse.json({ error: err.message || "Unknown error" }, { status: 500 });
   }
 }
