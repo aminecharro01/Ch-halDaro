@@ -158,7 +158,7 @@ export default function MatchPage({ params }: { params: Promise<{ id: string }> 
       )}
 
       {isNotStarted && <PredictionPanel fixtureId={id} />}
-      {!isNotStarted && match.fixture.status.short === 'FT' && <MatchAnalysis matchData={data} />}
+      {!isNotStarted && ['FT', 'AET', 'PEN'].includes(match.fixture.status.short) && <MatchAnalysis matchData={data} />}
     </div>
   );
 }

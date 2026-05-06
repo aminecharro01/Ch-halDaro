@@ -8,7 +8,7 @@ export function MatchAnalysis({ matchData }: { matchData: any }) {
   useEffect(() => {
     if (!matchData?.fixture) return;
 
-    if (matchData.fixture.status.short !== 'FT') {
+    if (!['FT', 'AET', 'PEN'].includes(matchData.fixture.status.short)) {
       setLoading(false);
       return;
     }
@@ -48,7 +48,7 @@ export function MatchAnalysis({ matchData }: { matchData: any }) {
     fetchAnalysis();
   }, [matchData]);
 
-  if (!matchData?.fixture || matchData.fixture.status.short !== 'FT') return null;
+  if (!matchData?.fixture || !['FT', 'AET', 'PEN'].includes(matchData.fixture.status.short)) return null;
 
   return (
     <div className="bg-gradient-to-br from-indigo-950/40 to-blue-900/10 border border-indigo-500/20 rounded-2xl p-5 relative overflow-hidden mt-6 animate-fade-up">

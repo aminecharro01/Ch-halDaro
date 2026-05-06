@@ -27,14 +27,15 @@ export default function Home() {
     revalidateOnFocus: true
   });
 
-  const matches = Array.isArray(data) ? data : (data?.response || []);
+  const rawMatches = Array.isArray(data) ? data : (data?.response || []);
+  const matches = Array.isArray(rawMatches) ? rawMatches : [];
   
   const filteredMatches = activeLeague === 'all' 
     ? matches 
-    : matches.filter((m: any) => m.league.id === activeLeague);
+    : matches.filter((m: any) => Number(m.league?.id) === Number(activeLeague));
 
-  const liveMatches = filteredMatches.filter((m: any) => ['1H', '2H', 'HT', 'ET', 'P'].includes(m.fixture.status.short));
-  const otherMatches = filteredMatches.filter((m: any) => !['1H', '2H', 'HT', 'ET', 'P'].includes(m.fixture.status.short));
+  const liveMatches = filteredMatches.filter((m: any) => ['1H', '2H', 'HT', 'ET', 'P'].includes(m.fixture?.status?.short));
+  const otherMatches = filteredMatches.filter((m: any) => !['1H', '2H', 'HT', 'ET', 'P'].includes(m.fixture?.status?.short));
 
   const changeDate = (days: number) => {
     const d = new Date(activeDate);
@@ -43,6 +44,7 @@ export default function Home() {
   };
 
   const isToday = activeDate === new Date().toISOString().split('T')[0];
+  const displayDate = isToday ? "Today" : new Date(activeDate).toLocaleDateString([], { weekday: 'long', month: 'long', day: 'numeric' });
 
   return (
     <div className="flex flex-col lg:flex-row gap-8">
@@ -92,8 +94,9 @@ export default function Home() {
 
         {isLoading ? (
           <div className="space-y-4">
-            <div className="h-32 bg-gray-900/20 backdrop-blur-sm rounded-2xl animate-pulse"></div>
-            <div className="h-32 bg-gray-900/20 backdrop-blur-sm rounded-2xl animate-pulse"></div>
+            {[1, 2, 3].map(i => (
+              <div key={i} className="h-32 bg-gray-900/20 backdrop-blur-sm rounded-2xl animate-pulse"></div>
+            ))}
           </div>
         ) : error || data?.error ? (
           <div className="text-red-500 font-bold text-center py-10 bg-red-950/20 backdrop-blur-md rounded-2xl border border-red-900/50">
@@ -117,7 +120,7 @@ export default function Home() {
 
             <section>
               <h2 className="text-xl font-bold mb-5 text-gray-300">
-                {activeLeague === 'all' ? "Today's Matches" : LEAGUES.find(l => l.id === activeLeague)?.name}
+                {activeLeague === 'all' ? `${displayDate}'s Matches` : `${LEAGUES.find(l => l.id === activeLeague)?.name} - ${displayDate}`}
               </h2>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 {otherMatches.map((match: any) => (
@@ -125,7 +128,7 @@ export default function Home() {
                 ))}
                 {otherMatches.length === 0 && (
                   <div className="col-span-full py-16 text-center bg-white/5 backdrop-blur-sm rounded-2xl border border-white/5">
-                    <p className="text-gray-500 font-medium">No other matches today.</p>
+                    <p className="text-gray-500 font-medium">No matches found for {displayDate}.</p>
                   </div>
                 )}
               </div>
