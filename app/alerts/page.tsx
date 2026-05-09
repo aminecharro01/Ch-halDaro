@@ -64,6 +64,26 @@ export default function AlertsPage() {
           Open Telegram
         </a>
       </div>
+
+      {/* Demo Notification History */}
+      <div className="bg-gray-900/40 border border-gray-800/60 p-6 rounded-3xl">
+        <h2 className="font-bold text-gray-300 mb-4">Notification History</h2>
+        <div className="space-y-3">
+          {[
+            { title: "GOAL! Vinicius Jr scores for Real Madrid", body: "2-1 vs Barcelona, 58' minute. Spectacular finish!", time: "10 mins ago" },
+            { title: "GOAL! Mbappé scores for France", body: "1-0 vs Argentina, 34' minute in the World Cup Final replay.", time: "45 mins ago" },
+            { title: "RED CARD! Araujo (Barcelona)", body: "62' minute. Barcelona are down to 10 men in El Clásico!", time: "1 hour ago" }
+          ].map((notif, i) => (
+            <div key={i} className="p-4 bg-gray-950/50 rounded-xl border border-gray-800 hover:border-gray-700 transition">
+              <div className="flex justify-between items-start mb-1">
+                <div className="font-bold text-sm text-gray-200">{notif.title}</div>
+                <div className="text-[10px] text-gray-500 font-medium">{notif.time}</div>
+              </div>
+              <div className="text-xs text-gray-400 leading-relaxed">{notif.body}</div>
+            </div>
+          ))}
+        </div>
+      </div>
     </div>
   );
 }
