@@ -1,6 +1,6 @@
 "use client";
 import useSWR from 'swr';
-import { use } from 'react';
+import { use, useState, useEffect } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 
@@ -8,7 +8,38 @@ const fetcher = (url: string) => fetch(url).then(res => res.json());
 
 export default function LeaguePage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params);
-  const { data, error, isLoading } = useSWR(`/api/league/${id}`, fetcher);
+  
+  const [cachedData, setCachedData] = useState<any>(null);
+
+  useEffect(() => {
+    const saved = localStorage.getItem(`league_data_${id}`);
+    if (saved) {
+      try {
+        const { data, timestamp } = JSON.parse(saved);
+        // Cache for 1 hour (3600000 ms)
+        if (Date.now() - timestamp < 3600000) {
+          setCachedData(data);
+        }
+      } catch (e) {}
+    }
+  }, [id]);
+
+  const { data: apiData, error, isLoading } = useSWR(cachedData ? null : `/api/league/${id}`, fetcher, {
+    revalidateOnFocus: false,
+    revalidateIfStale: false
+  });
+
+  const data = cachedData || apiData;
+
+  useEffect(() => {
+    if (apiData && !apiData.error) {
+      localStorage.setItem(`league_data_${id}`, JSON.stringify({
+        data: apiData,
+        timestamp: Date.now()
+      }));
+    }
+  }, [apiData, id]);
+
 
   if (isLoading) return (
     <div className="max-w-7xl mx-auto p-4 space-y-8 animate-pulse">

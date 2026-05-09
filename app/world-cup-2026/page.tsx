@@ -1,11 +1,12 @@
 import { fetchFootballApi } from '@/lib/api-football';
 import Image from 'next/image';
+import Link from 'next/link';
 
 export default async function WorldCup() {
   // Fetch tournament standings
   let standings = [];
   try {
-    const data = await fetchFootballApi('/standings', { league: '1', season: '2022' });
+    const data = await fetchFootballApi('/standings', { league: '1', season: '2026' }) as any;
     if (data && data[0] && data[0].league && data[0].league.standings) {
       standings = data[0].league.standings;
     }
@@ -13,13 +14,8 @@ export default async function WorldCup() {
     console.error("Failed to fetch WC standings", e);
   }
 
-  // Fallback if no data
-  const groups = standings.length > 0 ? standings : Array.from({ length: 8 }).map((_, i) => [
-    { team: { name: 'TBD 1' }, points: 0, goalsDiff: 0 },
-    { team: { name: 'TBD 2' }, points: 0, goalsDiff: 0 },
-    { team: { name: 'TBD 3' }, points: 0, goalsDiff: 0 },
-    { team: { name: 'TBD 4' }, points: 0, goalsDiff: 0 },
-  ]);
+  // World Cup 2026 has 12 groups (A-L)
+  const groups = standings.length > 0 ? standings : [];
 
   return (
     <div className="space-y-8 animate-fade-up">
@@ -60,6 +56,8 @@ export default async function WorldCup() {
         </div>
       </section>
 
+      <WorldCupMatches />
+
       <section className="opacity-50">
         <h2 className="text-xl font-bold text-gray-200 mb-6 mt-12 flex items-center gap-2">
           <span className="text-gray-500 block w-2 h-6 rounded-sm bg-gray-500"></span>
@@ -70,5 +68,39 @@ export default async function WorldCup() {
         </div>
       </section>
     </div>
+  );
+}
+
+async function WorldCupMatches() {
+  const matches = await fetchFootballApi('/fixtures', { league: '1', season: '2026' }) as any;
+
+  return (
+    <section>
+      <h2 className="text-xl font-bold text-gray-200 mb-6 flex items-center gap-2">
+        <span className="text-blue-500 block w-2 h-6 rounded-sm bg-blue-500"></span>
+        Featured Matches
+      </h2>
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        {matches.map((m: any) => (
+          <Link href={`/match/${m.fixture.id}`} key={m.fixture.id} className="bg-gray-900 border border-gray-800 rounded-2xl p-6 hover:bg-gray-800 transition">
+            <div className="flex justify-between items-center mb-4">
+              <span className="text-[10px] font-bold text-gray-500 uppercase tracking-widest">{m.league.round}</span>
+              <span className="text-xs font-bold text-live-green">{m.fixture.status.short === 'FT' ? 'FT' : `${m.fixture.status.elapsed}'`}</span>
+            </div>
+            <div className="flex items-center justify-between">
+              <div className="flex flex-col items-center gap-2 flex-1">
+                <Image src={m.teams.home.logo} width={40} height={40} alt="" className="w-10 h-10 object-contain" />
+                <span className="font-bold text-sm text-center">{m.teams.home.name}</span>
+              </div>
+              <div className="text-3xl font-black px-4">{m.goals.home} - {m.goals.away}</div>
+              <div className="flex flex-col items-center gap-2 flex-1">
+                <Image src={m.teams.away.logo} width={40} height={40} alt="" className="w-10 h-10 object-contain" />
+                <span className="font-bold text-sm text-center">{m.teams.away.name}</span>
+              </div>
+            </div>
+          </Link>
+        ))}
+      </div>
+    </section>
   );
 }

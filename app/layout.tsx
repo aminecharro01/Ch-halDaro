@@ -62,6 +62,13 @@ export default async function RootLayout({
             </nav>
           </div>
         </header>
+        {process.env.DEMO_MODE === "true" && (
+          <div className="fixed bottom-4 right-4 z-50 pointer-events-none">
+            <span className="bg-red-600 text-white text-[10px] font-black px-3 py-1 rounded-full shadow-lg border border-white/20 animate-pulse uppercase tracking-widest">
+              Demo Mode Active
+            </span>
+          </div>
+        )}
         <main className="flex-1 w-full max-w-7xl mx-auto px-4 py-8">
           {children}
         </main>

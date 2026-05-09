@@ -1,6 +1,6 @@
 "use client";
 import useSWR from 'swr';
-import { use } from 'react';
+import { use, useState, useEffect } from 'react';
 import { EventTimeline } from '@/components/EventTimeline';
 import { StatBar } from '@/components/StatBar';
 import { PredictionPanel } from '@/components/PredictionPanel';
@@ -12,14 +12,38 @@ const fetcher = (url: string) => fetch(url).then(res => res.json());
 export default function MatchPage({ params }: { params: Promise<{ id: string }> }) {
   const resolvedParams = use(params);
   const id = resolvedParams.id;
+
+  // Persistence logic: Check if we have a finished match in cache
+  const [cachedData, setCachedData] = useState<any>(null);
   
-  const { data, error, isLoading } = useSWR(`/api/match/${id}`, fetcher, { 
-    refreshInterval: 60000,
-    revalidateOnFocus: true
+  useEffect(() => {
+    const saved = localStorage.getItem(`match_full_${id}`);
+    if (saved) {
+      try {
+        const parsed = JSON.parse(saved);
+        // Only use cache if it was already finished
+        if (['FT', 'AET', 'PEN'].includes(parsed.fixture?.fixture?.status?.short)) {
+          setCachedData(parsed);
+        }
+      } catch (e) {}
+    }
+  }, [id]);
+
+  const { data: apiData, error, isLoading } = useSWR(cachedData ? null : `/api/match/${id}`, fetcher, { 
+    refreshInterval: cachedData ? 0 : 60000,
+    revalidateOnFocus: !cachedData
   });
 
+  const data = cachedData || apiData;
+
+  useEffect(() => {
+    if (data?.fixture && ['FT', 'AET', 'PEN'].includes(data.fixture.fixture?.status?.short)) {
+      localStorage.setItem(`match_full_${id}`, JSON.stringify(data));
+    }
+  }, [data, id]);
+
   const apiError = data?.error || error?.message;
-  if (isLoading) return <div className="text-center py-20 text-gray-500 animate-pulse">Loading match details...</div>;
+  if (isLoading && !data) return <div className="text-center py-20 text-gray-500 animate-pulse">Loading match details...</div>;
   if (apiError || !data?.fixture) return (
     <div className="text-center py-20">
       <div className="text-red-500 font-bold mb-2">Error loading match.</div>

@@ -17,6 +17,11 @@ webpush.setVapidDetails(
 
 export async function GET() {
   try {
+    if (process.env.DEMO_MODE === "true") {
+      const { getMockNotifications } = await import("@/lib/mockData");
+      return NextResponse.json({ success: true, mockNotifications: getMockNotifications() });
+    }
+
     let subs: any[] = [];
     
     if (process.env.NEXT_PUBLIC_SUPABASE_URL && process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY) {

@@ -6,6 +6,11 @@ export async function POST(request: NextRequest) {
     const body = await request.json();
     const { matchId, homeTeam, awayTeam, score, events, stats } = body;
 
+    if (process.env.DEMO_MODE === "true") {
+      const { getMockAnalysis } = await import("@/lib/mockData");
+      return NextResponse.json({ analysis: getMockAnalysis(matchId) });
+    }
+
     const prompt = `You are a professional football match analyst. Write a concise 2-paragraph post-match report in broadcast journalism style for the following match. Be specific about key moments. Do not use filler phrases like 'in a thrilling encounter'.
 
 Match: ${homeTeam} ${score} ${awayTeam}

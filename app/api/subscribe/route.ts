@@ -10,6 +10,11 @@ const filePath = path.join(tmpDir, 'subscriptions.json');
 export async function POST(request: NextRequest) {
   try {
     const sub = await request.json();
+
+    if (process.env.DEMO_MODE === "true") {
+      return NextResponse.json({ success: true, count: 1 });
+    }
+    
     let subs = [];
     
     if (process.env.NEXT_PUBLIC_SUPABASE_URL && process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY) {

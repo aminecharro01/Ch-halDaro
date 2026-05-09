@@ -1,4 +1,9 @@
-export const fetchFootballApi = async (endpoint: string, params: Record<string, string> = {}) => {
+export const fetchFootballApi = async (endpoint: string, params: Record<string, string> = {}, revalidate = 60) => {
+  if (process.env.DEMO_MODE === "true") {
+    const { getMockData } = await import("./mockData");
+    return getMockData(endpoint, params);
+  }
+
   const API_KEY = process.env.API_FOOTBALL_KEY;
   const BASE_URL = `https://v3.football.api-sports.io`;
 
@@ -12,7 +17,7 @@ export const fetchFootballApi = async (endpoint: string, params: Record<string, 
       headers: {
         'x-apisports-key': API_KEY || "",
       },
-      next: { revalidate: 60 }
+      next: { revalidate }
     });
   } catch (fetchErr: any) {
     console.error("Fetch failed", fetchErr);

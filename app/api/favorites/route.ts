@@ -2,6 +2,18 @@ import { createClient } from '@/lib/supabase/server'
 import { NextResponse } from 'next/server'
 
 export async function GET() {
+  if (process.env.DEMO_MODE === "true") {
+    return NextResponse.json([
+      { item_id: "541", item_type: "team" },
+      { item_id: "50", item_type: "team" },
+      { item_id: "529", item_type: "team" },
+      { item_id: "39", item_type: "league" },
+      { item_id: "140", item_type: "league" },
+      { item_id: "2", item_type: "league" },
+      { item_id: "1", item_type: "league" }
+    ]);
+  }
+
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
 
@@ -25,6 +37,9 @@ export async function GET() {
 }
 
 export async function POST(request: Request) {
+  if (process.env.DEMO_MODE === "true") {
+    return NextResponse.json({ success: true });
+  }
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
 
@@ -47,6 +62,9 @@ export async function POST(request: Request) {
 }
 
 export async function DELETE(request: Request) {
+  if (process.env.DEMO_MODE === "true") {
+    return NextResponse.json({ success: true });
+  }
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
 
