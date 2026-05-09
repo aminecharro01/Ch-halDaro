@@ -1,45 +1,46 @@
+"use client";
 import Link from 'next/link';
 import { Trophy, Globe, Medal } from 'lucide-react';
 
 export function Sidebar() {
   const topTeams = [
-    { id: '133602', name: 'Real Madrid', img: 'https://www.thesportsdb.com/images/media/team/badge/small/v767ar1680190562.png' },
-    { id: '133613', name: 'Manchester City', img: 'https://www.thesportsdb.com/images/media/team/badge/small/v2v9v31680191836.png' },
-    { id: '133714', name: 'PSG', img: 'https://www.thesportsdb.com/images/media/team/badge/small/66048q1611394142.png' },
-    { id: '133664', name: 'Bayern Munich', img: 'https://www.thesportsdb.com/images/media/team/badge/small/1vj2441680190928.png' },
-    { id: '133604', name: 'Arsenal', img: 'https://www.thesportsdb.com/images/media/team/badge/small/uvpuvt1448813540.png' },
+    { id: '133602', name: 'Liverpool', img: 'https://r2.thesportsdb.com/images/media/team/badge/kfaher1737969724.png' },
+    { id: '133613', name: 'Manchester City', img: 'https://r2.thesportsdb.com/images/media/team/badge/vwpvry1467462651.png' },
+    { id: '133738', name: 'Real Madrid', img: 'https://r2.thesportsdb.com/images/media/team/badge/vwvwrw1473502969.png' },
+    { id: '133664', name: 'Bayern Munich', img: 'https://r2.thesportsdb.com/images/media/team/badge/01ogkh1716960412.png' },
+    { id: '133604', name: 'Arsenal', img: 'https://r2.thesportsdb.com/images/media/team/badge/uyhbfe1612467038.png' },
   ];
 
   const topCompetitions = [
-    { id: '4480', name: 'Champions League' },
-    { id: '4328', name: 'Premier League' },
-    { id: '4335', name: 'La Liga' },
-    { id: '4332', name: 'Serie A' },
-    { id: '4331', name: 'Bundesliga' },
-    { id: '4520', name: 'Botola Pro' },
+    { id: '4480', name: 'Champions League', img: 'https://r2.thesportsdb.com/images/media/league/badge/small/dq7mve1738367912.png' },
+    { id: '4328', name: 'Premier League', img: 'https://r2.thesportsdb.com/images/media/league/badge/gasy9d1737743125.png' },
+    { id: '4335', name: 'La Liga', img: 'https://r2.thesportsdb.com/images/media/league/badge/ja4it51687628717.png' },
+    { id: '4332', name: 'Serie A', img: 'https://r2.thesportsdb.com/images/media/league/badge/67q3q21679951383.png' },
+    { id: '4331', name: 'Bundesliga', img: 'https://r2.thesportsdb.com/images/media/league/badge/teqh1b1679952008.png' },
+    { id: '4520', name: 'Botola Pro', img: 'https://r2.thesportsdb.com/images/media/league/badge/small/9m769m1601041187.png' },
   ];
 
   const regions = [
-    { id: 'europe', name: 'Europe' },
-    { id: 'south-america', name: 'South America' },
-    { id: 'asia', name: 'Asia' },
-    { id: 'africa', name: 'Africa' },
+    { id: 'Europe', name: 'Europe' },
+    { id: 'South-America', name: 'South America' },
+    { id: 'Asia', name: 'Asia' },
+    { id: 'Africa', name: 'Africa' },
   ];
 
   return (
     <aside className="w-full lg:w-64 flex-shrink-0 space-y-6">
       {/* Top Teams */}
       <div className="bg-gray-900/40 backdrop-blur-md border border-white/10 rounded-2xl p-5 shadow-lg">
-        <h3 className="font-bold text-white mb-4 flex items-center gap-2">
-          <Medal className="w-5 h-5 text-yellow-500" /> Top 5 Teams
+        <h3 className="font-bold text-white mb-4 flex items-center gap-2 text-xs uppercase tracking-widest">
+          <Medal className="w-4 h-4 text-yellow-500" /> Top 5 Teams
         </h3>
         <ul className="space-y-3">
           {topTeams.map((team, idx) => (
             <li key={team.id}>
-              <Link href={`/team/${team.id}`} className="flex items-center gap-3 group">
-                <span className="text-xs font-bold text-gray-500 w-3">{idx + 1}</span>
+              <Link href={`/team/${team.id}`} className="flex items-center gap-3 group p-1.5 rounded-xl hover:bg-white/5 transition-all">
+                <span className="text-[10px] font-bold text-gray-600 w-3">{idx + 1}</span>
                 <img src={team.img} className="w-6 h-6 object-contain group-hover:scale-110 transition-transform" alt={team.name} />
-                <span className="text-sm font-semibold text-gray-300 group-hover:text-white transition-colors">{team.name}</span>
+                <span className="text-xs font-bold text-gray-400 group-hover:text-white transition-colors truncate">{team.name}</span>
               </Link>
             </li>
           ))}
@@ -48,15 +49,15 @@ export function Sidebar() {
 
       {/* Top Competitions */}
       <div className="bg-gray-900/40 backdrop-blur-md border border-white/10 rounded-2xl p-5 shadow-lg">
-        <h3 className="font-bold text-white mb-4 flex items-center gap-2">
-          <Trophy className="w-5 h-5 text-indigo-500" /> Top Competitions
+        <h3 className="font-bold text-white mb-4 flex items-center gap-2 text-xs uppercase tracking-widest">
+          <Trophy className="w-4 h-4 text-indigo-500" /> Competitions
         </h3>
         <ul className="space-y-3">
           {topCompetitions.map((comp) => (
             <li key={comp.id}>
-              <Link href={`/league/${comp.id}`} className="flex items-center gap-2 text-sm font-semibold text-gray-300 hover:text-white transition-colors">
-                <span className="w-1.5 h-1.5 rounded-full bg-indigo-500" />
-                {comp.name}
+              <Link href={`/league/${comp.id}`} className="flex items-center gap-3 group p-1.5 rounded-xl hover:bg-white/5 transition-all">
+                <img src={comp.img} className="w-5 h-5 object-contain opacity-70 group-hover:opacity-100 transition-opacity" alt={comp.name} />
+                <span className="text-xs font-bold text-gray-400 group-hover:text-white transition-colors truncate">{comp.name}</span>
               </Link>
             </li>
           ))}

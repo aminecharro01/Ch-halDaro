@@ -116,13 +116,42 @@ export default async function WorldCup() {
         )}
       </section>
 
-      <section className="opacity-50">
+      <section>
         <h2 className="text-xl font-bold text-gray-200 mb-6 mt-12 flex items-center gap-2">
           <span className="text-gray-500 block w-2 h-6 rounded-sm bg-gray-500"></span>
           Knockout Bracket
         </h2>
-        <div className="bg-gray-900 border border-gray-800 rounded-2xl p-10 text-center border-dashed">
-          <div className="text-gray-500 italic">Knockout bracket will render here once Round of 32 begins</div>
+        <div className="overflow-x-auto pb-8">
+          <div className="min-w-[800px] flex justify-between items-center gap-4 bg-gray-950/50 p-10 rounded-3xl border border-gray-800/50 relative">
+            {/* Round of 16 */}
+            <div className="space-y-8">
+              {[1, 2].map(i => (
+                <div key={i} className="w-32 h-12 bg-gray-900 border border-gray-800 rounded-lg flex items-center justify-center text-[10px] text-gray-500 font-bold uppercase">R16 Match {i}</div>
+              ))}
+            </div>
+            {/* Connector */}
+            <div className="w-8 h-px bg-gray-800"></div>
+            {/* Quarter Finals */}
+            <div className="space-y-16">
+              <div className="w-32 h-12 bg-blue-900/20 border border-blue-800/50 rounded-lg flex items-center justify-center text-[10px] text-blue-400 font-bold uppercase">Quarter Final</div>
+            </div>
+            {/* Connector */}
+            <div className="w-8 h-px bg-blue-800/50"></div>
+            {/* Semi Finals */}
+            <div className="w-40 h-16 bg-indigo-900/30 border border-indigo-700/50 rounded-xl flex items-center justify-center text-xs text-indigo-300 font-black uppercase shadow-lg shadow-indigo-500/10">Semi Final</div>
+            {/* Connector */}
+            <div className="w-12 h-px bg-indigo-500/50"></div>
+            {/* Final */}
+            <div className="w-48 h-24 bg-gradient-to-br from-yellow-500/20 to-amber-600/20 border-2 border-yellow-500/50 rounded-2xl flex flex-col items-center justify-center gap-2 shadow-2xl shadow-yellow-500/20">
+              <span className="text-2xl">🏆</span>
+              <span className="text-xs font-black text-yellow-500 uppercase tracking-widest">Grand Final</span>
+              <span className="text-[10px] text-yellow-500/60 font-bold">MetLife Stadium</span>
+            </div>
+            
+            <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+               <div className="text-4xl font-black text-white/5 uppercase tracking-[2em] -rotate-12">Knockout</div>
+            </div>
+          </div>
         </div>
       </section>
     </div>

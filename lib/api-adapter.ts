@@ -98,6 +98,18 @@ export const mapSquad = (tsdbData: any) => {
   }));
 };
 
+export const mapLeague = (tsdbLeague: any) => {
+  if (!tsdbLeague) return null;
+  return {
+    id: parseInt(tsdbLeague.idLeague),
+    name: tsdbLeague.strLeague,
+    logo: tsdbLeague.strBadge || tsdbLeague.strLogo,
+    banner: tsdbLeague.strBanner,
+    country: tsdbLeague.strCountry,
+    season: tsdbLeague.strCurrentSeason
+  };
+};
+
 export const mapTeam = (tsdbTeam: any) => {
   return {
     team: {

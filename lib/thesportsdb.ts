@@ -92,9 +92,16 @@ export const getTeamDetails = (teamId: string) =>
 export const getTeamSquad = (teamId: string) => 
   fetchTheSportsDb(`list/players/${teamId}`, {}, 3600);
 
-// Filter by Day
-export const getEventsByDay = (date: string) => 
-  fetchTheSportsDb(`filter/tv/day/${date}`, {}, 60);
+// Filter by Day (Using V1 endpoint because it is richer than V2 filter/tv/day)
+export const getEventsByDay = (date: string) => {
+  const API_KEY = process.env.THESPORTSDB_KEY || "3";
+  // We use eventsday.php because it returns full team names and badges which V2 filter/tv/day lacks
+  const url = `https://www.thesportsdb.com/api/v1/json/${API_KEY}/eventsday.php?d=${date}&s=Soccer`;
+  console.log(`[TheSportsDB] Fetching Daily Events: ${url}`);
+  return fetch(url, { next: { revalidate: 60 } })
+    .then(res => res.json())
+    .then(data => data.events || []);
+};
 
 // League Details
 export const getLeagueDetails = (leagueId: string) => 

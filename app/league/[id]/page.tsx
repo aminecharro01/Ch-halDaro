@@ -23,7 +23,7 @@ export default function LeaguePage({ params }: { params: Promise<{ id: string }>
   
   if (error || !data) return <div className="text-red-500 py-20 text-center font-bold">Error loading league data.</div>;
 
-  const { standings, topScorers, topAssists, lastFixtures, nextFixtures } = data;
+  const { league, standings, topScorers, topAssists, lastFixtures, nextFixtures } = data;
 
   // Flatten standings if it's a multi-group league like Champions League
   // If standings[0] is an array, it's grouped.
@@ -34,15 +34,15 @@ export default function LeaguePage({ params }: { params: Promise<{ id: string }>
       <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 bg-gray-900/60 p-8 rounded-3xl border border-white/5 relative overflow-hidden backdrop-blur-md">
         <div className="flex items-center gap-6 relative z-10">
           <div className="bg-white/5 p-4 rounded-2xl border border-white/10 shadow-inner">
-             {standings?.[0]?.[0]?.league?.logo && (
-               <Image src={standings[0][0].league.logo} width={64} height={64} className="w-16 h-16 object-contain" alt="" />
+             {league?.logo && (
+               <Image src={league.logo} width={64} height={64} className="w-16 h-16 object-contain" alt={league.name} />
              )}
           </div>
           <div>
             <h1 className="text-4xl md:text-5xl font-black text-white tracking-tighter uppercase">
-              {standings?.[0]?.[0]?.league?.name || "League Details"}
+              {league?.name || "League Details"}
             </h1>
-            <p className="text-gray-500 font-bold uppercase tracking-widest text-xs mt-1">Saison 2024-2025</p>
+            <p className="text-gray-500 font-bold uppercase tracking-widest text-xs mt-1">Saison {league?.season || "2024-2025"}</p>
           </div>
         </div>
         <div className="flex gap-4 relative z-10">
@@ -180,15 +180,20 @@ export default function LeaguePage({ params }: { params: Promise<{ id: string }>
             </h2>
             <div className="space-y-3">
               {topScorers.slice(0, 10).map((s: any) => (
-                <div key={s.player.id} className="flex items-center gap-3 bg-gray-900/50 p-3 rounded-2xl border border-white/5">
-                  {s.player.photo && (
-                    <Image src={s.player.photo} width={32} height={32} className="w-8 h-8 rounded-full bg-gray-800" alt="" />
-                  )}
+                <div key={s.player.id} className="flex items-center gap-3 bg-gray-900/50 p-3 rounded-2xl border border-white/5 hover:bg-gray-800/60 transition-colors">
+                  <div className="relative">
+                    {s.player.photo && (
+                      <Image src={s.player.photo} width={40} height={40} className="w-10 h-10 rounded-full bg-gray-800 object-cover border border-white/10" alt="" />
+                    )}
+                    {s.statistics[0].team.logo && (
+                      <img src={s.statistics[0].team.logo} className="w-4 h-4 object-contain absolute -bottom-1 -right-1 bg-gray-900 rounded-full p-0.5 border border-white/20" alt="" />
+                    )}
+                  </div>
                   <div className="flex-1 min-w-0">
                     <div className="text-xs font-bold text-gray-200 truncate">{s.player.name}</div>
                     <div className="text-[8px] text-gray-500 uppercase font-black">{s.statistics[0].team.name}</div>
                   </div>
-                  <div className="text-sm font-black text-white">{s.statistics[0].goals.total}</div>
+                  <div className="text-sm font-black text-white bg-green-500/10 px-2 py-1 rounded-lg border border-green-500/20">{s.statistics[0].goals.total}</div>
                 </div>
               ))}
             </div>
@@ -200,15 +205,20 @@ export default function LeaguePage({ params }: { params: Promise<{ id: string }>
             </h2>
             <div className="space-y-3">
               {topAssists.slice(0, 10).map((s: any) => (
-                <div key={s.player.id} className="flex items-center gap-3 bg-gray-900/50 p-3 rounded-2xl border border-white/5">
-                  {s.player.photo && (
-                    <Image src={s.player.photo} width={32} height={32} className="w-8 h-8 rounded-full bg-gray-800" alt="" />
-                  )}
+                <div key={s.player.id} className="flex items-center gap-3 bg-gray-900/50 p-3 rounded-2xl border border-white/5 hover:bg-gray-800/60 transition-colors">
+                  <div className="relative">
+                    {s.player.photo && (
+                      <Image src={s.player.photo} width={40} height={40} className="w-10 h-10 rounded-full bg-gray-800 object-cover border border-white/10" alt="" />
+                    )}
+                    {s.statistics[0].team.logo && (
+                      <img src={s.statistics[0].team.logo} className="w-4 h-4 object-contain absolute -bottom-1 -right-1 bg-gray-900 rounded-full p-0.5 border border-white/20" alt="" />
+                    )}
+                  </div>
                   <div className="flex-1 min-w-0">
                     <div className="text-xs font-bold text-gray-200 truncate">{s.player.name}</div>
                     <div className="text-[8px] text-gray-500 uppercase font-black">{s.statistics[0].team.name}</div>
                   </div>
-                  <div className="text-sm font-black text-white">{s.statistics[0].goals.assists || 0}</div>
+                  <div className="text-sm font-black text-white bg-blue-500/10 px-2 py-1 rounded-lg border border-blue-500/20">{s.statistics[0].goals.assists || 0}</div>
                 </div>
               ))}
             </div>
