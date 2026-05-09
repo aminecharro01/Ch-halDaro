@@ -1,4 +1,5 @@
-import { fetchFootballApi } from '@/lib/api-football';
+import { getTeamDetails } from '@/lib/thesportsdb';
+import { mapTeam } from '@/lib/api-adapter';
 import { NextResponse } from 'next/server';
 
 export async function GET(request: Request) {
@@ -10,8 +11,10 @@ export async function GET(request: Request) {
   }
 
   try {
-    const data = await fetchFootballApi('/teams', { id });
-    return NextResponse.json(data);
+    const data = await getTeamDetails(id);
+    const teamList = Array.isArray(data) ? data : (data.teams || []);
+    const teams = teamList.map(mapTeam);
+    return NextResponse.json(teams);
   } catch (error: any) {
     return NextResponse.json({ error: error.message }, { status: 500 });
   }

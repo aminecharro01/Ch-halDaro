@@ -7,7 +7,7 @@ export function PredictionPanel({ fixtureId }: { fixtureId: string | number }) {
   const { data, error, isLoading } = useSWR(`/api/predictions/${fixtureId}`, fetcher);
 
   if (isLoading) return <div className="animate-pulse h-32 bg-white/20 dark:bg-gray-900/40 backdrop-blur rounded-xl mt-6"></div>;
-  if (error || !data || data.length === 0) return null;
+  if (error || !data || !Array.isArray(data) || data.length === 0 || !data[0].predictions) return null;
 
   const pred = data[0];
   const { percent, advice } = pred.predictions;

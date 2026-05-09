@@ -5,6 +5,8 @@ import { EventTimeline } from '@/components/EventTimeline';
 import { StatBar } from '@/components/StatBar';
 import { PredictionPanel } from '@/components/PredictionPanel';
 import { MatchAnalysis } from '@/components/MatchAnalysis';
+import { AISummary } from '@/components/AISummary';
+import { KeyBattle } from '@/components/KeyBattle';
 import Image from 'next/image';
 
 const fetcher = (url: string) => fetch(url).then(res => res.json());
@@ -57,7 +59,11 @@ export default function MatchPage({ params }: { params: Promise<{ id: string }> 
             {isLive ? (
               <div className="flex items-center gap-1.5 mb-2 bg-live-green/10 text-live-green px-2 py-0.5 rounded-full border border-live-green/20">
                 <span className="w-1.5 h-1.5 bg-live-green rounded-full animate-pulse-dot"></span>
-                <span className="font-bold text-xs">{match.fixture.status.elapsed}'</span>
+                <span className="font-bold text-xs">
+                  {match.fixture.status.elapsed && parseInt(match.fixture.status.elapsed) > 0 
+                    ? `${match.fixture.status.elapsed}'` 
+                    : match.fixture.status.short}
+                </span>
               </div>
             ) : isNotStarted ? (
               <div className="text-gray-400 font-bold text-xs mb-2">
@@ -78,34 +84,39 @@ export default function MatchPage({ params }: { params: Promise<{ id: string }> 
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <div className="col-span-1 border border-gray-800/80 rounded-2xl p-5 bg-gray-900/30 hidden md:block">
-          <h3 className="text-xs font-bold text-gray-500 uppercase tracking-widest mb-5 flex items-center gap-2">
-            <span>📋</span> Lineups
-          </h3>
-          {data.lineups.length > 0 ? (
-            <div className="space-y-6">
-              {data.lineups.map((lineup: any, i: number) => (
-                <div key={i}>
-                  <div className="font-bold text-gray-200 mb-3 pb-2 border-b border-gray-800/50 flex justify-between">
-                    <span>{lineup.team.name}</span>
-                    <span className="text-gray-500 font-mono text-xs bg-gray-800 px-1.5 py-0.5 rounded">{lineup.formation}</span>
+        <div className="col-span-1 space-y-6">
+          <AISummary matchId={id} />
+          <KeyBattle matchId={id} />
+          
+          <div className="border border-gray-800/80 rounded-2xl p-5 bg-gray-900/30 hidden md:block">
+            <h3 className="text-xs font-bold text-gray-500 uppercase tracking-widest mb-5 flex items-center gap-2">
+              <span>📋</span> Lineups
+            </h3>
+            {data.lineups.length > 0 ? (
+              <div className="space-y-6">
+                {data.lineups.map((lineup: any, i: number) => (
+                  <div key={i}>
+                    <div className="font-bold text-gray-200 mb-3 pb-2 border-b border-gray-800/50 flex justify-between">
+                      <span>{lineup.team.name}</span>
+                      <span className="text-gray-500 font-mono text-xs bg-gray-800 px-1.5 py-0.5 rounded">{lineup.formation}</span>
+                    </div>
+                    <ul className="space-y-2 text-sm text-gray-400">
+                      {lineup.startXI.map((player: any, idx: number) => (
+                        <li key={idx} className="flex gap-3 items-center group">
+                          <span className="w-6 h-6 flex items-center justify-center bg-gray-800/50 text-gray-500 rounded text-xs group-hover:bg-gray-700 transition">
+                            {player.player.number}
+                          </span>
+                          <span className="group-hover:text-gray-200 transition">{player.player.name}</span>
+                        </li>
+                      ))}
+                    </ul>
                   </div>
-                  <ul className="space-y-2 text-sm text-gray-400">
-                    {lineup.startXI.map((player: any, idx: number) => (
-                      <li key={idx} className="flex gap-3 items-center group">
-                        <span className="w-6 h-6 flex items-center justify-center bg-gray-800/50 text-gray-500 rounded text-xs group-hover:bg-gray-700 transition">
-                          {player.player.number}
-                        </span>
-                        <span className="group-hover:text-gray-200 transition">{player.player.name}</span>
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-              ))}
-            </div>
-          ) : (
-            <div className="text-gray-600 text-sm italic">Lineups not available</div>
-          )}
+                ))}
+              </div>
+            ) : (
+              <div className="text-gray-600 text-sm italic">Lineups not available</div>
+            )}
+          </div>
         </div>
 
         <div className="col-span-1 border border-gray-800/80 rounded-2xl p-5 bg-gray-900/30">

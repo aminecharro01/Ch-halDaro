@@ -10,12 +10,13 @@ const fetcher = (url: string) => fetch(url).then(res => res.json());
 
 const LEAGUES = [
   { id: 'all', name: 'All' },
-  { id: 2, name: 'Champions League' },
-  { id: 39, name: 'Premier League' },
-  { id: 140, name: 'La Liga' },
-  { id: 135, name: 'Serie A' },
-  { id: 78, name: 'Bundesliga' },
-  { id: 61, name: 'Ligue 1' }
+  { id: 4480, name: 'Champions League' },
+  { id: 4328, name: 'Premier League' },
+  { id: 4335, name: 'La Liga' },
+  { id: 4332, name: 'Serie A' },
+  { id: 4331, name: 'Bundesliga' },
+  { id: 4334, name: 'Ligue 1' },
+  { id: 4520, name: 'Botola Pro' }
 ];
 
 export default function Home() {
@@ -47,6 +48,21 @@ export default function Home() {
   const isToday = activeDate === new Date().toISOString().split('T')[0];
   const displayDate = isToday ? "Today" : new Date(activeDate).toLocaleDateString([], { weekday: 'long', month: 'long', day: 'numeric' });
 
+  // Group matches by league
+  const groupedMatches: Record<string, { league: any, matches: any[] }> = {};
+  filteredMatches.forEach((match: any) => {
+    const leagueId = match.league.id;
+    if (!groupedMatches[leagueId]) {
+      groupedMatches[leagueId] = {
+        league: match.league,
+        matches: []
+      };
+    }
+    groupedMatches[leagueId].matches.push(match);
+  });
+
+  const leagueGroups = Object.values(groupedMatches);
+
   return (
     <div className="flex flex-col lg:flex-row gap-8">
       {/* Sidebar */}
@@ -54,8 +70,8 @@ export default function Home() {
 
       {/* Main Feed */}
       <div className="flex-1 space-y-8 min-w-0">
-        <div className="flex flex-col gap-4">
-          <div className="flex items-center gap-4 bg-gray-900/40 p-2 rounded-2xl border border-white/5 self-start">
+        <div className="flex flex-col gap-6">
+          <div className="flex items-center gap-4 bg-gray-900/40 p-2 rounded-2xl border border-white/5 self-start backdrop-blur-md">
             <button 
               onClick={() => changeDate(-1)}
               className="px-4 py-2 text-xs font-bold text-gray-400 hover:text-white transition-colors"
@@ -103,38 +119,34 @@ export default function Home() {
           <div className="text-red-500 font-bold text-center py-10 bg-red-950/20 backdrop-blur-md rounded-2xl border border-red-900/50">
             Error: {apiError}
           </div>
-        ) : (
-          <>
-            {liveMatches.length > 0 && (
-              <section>
-                <div className="flex items-center gap-3 mb-5">
-                  <LiveBadge />
-                  <h2 className="text-2xl font-black text-white tracking-tight">Live Now</h2>
+        ) : leagueGroups.length > 0 ? (
+          <div className="space-y-10">
+            {leagueGroups.map((group: any) => (
+              <div key={group.league.id} className="space-y-4">
+                <div className="flex items-center gap-3 px-2">
+                  {group.league.logo && (
+                    <img src={group.league.logo} alt="" className="w-6 h-6 object-contain" />
+                  )}
+                  <h2 className="text-sm font-black text-white uppercase tracking-tighter flex items-center gap-2">
+                    {group.league.name}
+                    <span className="text-[10px] text-gray-500 font-bold bg-gray-800 px-1.5 py-0.5 rounded ml-2">
+                      {group.matches.length}
+                    </span>
+                  </h2>
                 </div>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  {liveMatches.map((match: any) => (
+                  {group.matches.map((match: any) => (
                     <MatchCard key={match.fixture.id} match={match} />
                   ))}
                 </div>
-              </section>
-            )}
-
-            <section>
-              <h2 className="text-xl font-bold mb-5 text-gray-300">
-                {activeLeague === 'all' ? `${displayDate}'s Matches` : `${LEAGUES.find(l => l.id === activeLeague)?.name} - ${displayDate}`}
-              </h2>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                {otherMatches.map((match: any) => (
-                  <MatchCard key={match.fixture.id} match={match} />
-                ))}
-                {otherMatches.length === 0 && (
-                  <div className="col-span-full py-16 text-center bg-white/5 backdrop-blur-sm rounded-2xl border border-white/5">
-                    <p className="text-gray-500 font-medium">No matches found for {displayDate}.</p>
-                  </div>
-                )}
               </div>
-            </section>
-          </>
+            ))}
+          </div>
+        ) : (
+          <div className="flex flex-col items-center justify-center py-32 text-center space-y-4 bg-gray-900/20 rounded-3xl border border-gray-800/50 border-dashed">
+            <span className="text-4xl opacity-20">⚽</span>
+            <div className="text-gray-500 font-bold uppercase tracking-widest text-xs">No matches found for this date</div>
+          </div>
         )}
       </div>
     </div>

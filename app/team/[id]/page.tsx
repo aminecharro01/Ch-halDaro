@@ -3,7 +3,8 @@
 import { use, useEffect, useState } from 'react';
 import Link from 'next/link';
 import { ArrowLeft, Trophy, Users, MapPin, Calendar, Activity } from 'lucide-react';
-import { fetchFootballApi } from '@/lib/api-football';
+import { FavoriteButton } from '@/components/FavoriteButton';
+import { FormGuide } from '@/components/FormGuide';
 import useSWR from 'swr';
 
 const fetcher = (url: string) => fetch(url).then(res => res.json());
@@ -39,17 +40,31 @@ export default function TeamPage({ params }: { params: Promise<{ id: string }> }
       {/* Team Header */}
       <div className="bg-gray-900/40 backdrop-blur-md shadow-xl border border-white/10 rounded-3xl p-8 relative overflow-hidden">
         <div className="absolute top-0 right-0 p-10 opacity-5">
-          <img src={team.team.logo} alt="" className="w-64 h-64 grayscale" />
+          {team.team.logo && (
+            <img src={team.team.logo} alt="" className="w-64 h-64 grayscale" />
+          )}
         </div>
         
         <div className="flex flex-col md:flex-row items-center gap-8 relative z-10">
-          <img src={team.team.logo} alt={team.team.name} className="w-32 h-32 object-contain drop-shadow-2xl" />
-          <div className="text-center md:text-left space-y-2">
-            <h1 className="text-4xl md:text-5xl font-black text-white tracking-tight">{team.team.name}</h1>
-            <div className="flex flex-wrap justify-center md:justify-start gap-4 text-sm font-medium text-gray-400">
-              <span className="flex items-center gap-1.5"><MapPin className="w-4 h-4 text-green-500" /> {team.venue.name}, {team.venue.city}</span>
-              <span className="flex items-center gap-1.5"><Trophy className="w-4 h-4 text-yellow-500" /> {team.team.country}</span>
-              <span className="flex items-center gap-1.5"><Calendar className="w-4 h-4 text-blue-500" /> Founded {team.team.founded}</span>
+          {team.team.logo && (
+            <img src={team.team.logo} alt={team.team.name} className="w-32 h-32 object-contain drop-shadow-2xl" />
+          )}
+          <div className="flex-1 w-full">
+            <div className="flex items-center justify-between">
+              <div>
+                <h1 className="text-3xl md:text-5xl font-black text-white tracking-tighter mb-1 uppercase">
+                  {team.team.name}
+                </h1>
+                <div className="flex flex-wrap items-center gap-4 text-xs font-bold text-gray-500 uppercase tracking-widest">
+                  <span className="flex items-center gap-1.5"><MapPin className="w-3 h-3 text-green-500" /> {team.team.country}</span>
+                  <span className="flex items-center gap-1.5"><Calendar className="w-3 h-3 text-blue-500" /> Founded {team.team.founded}</span>
+                  <div className="flex items-center gap-2 ml-2">
+                    <span className="text-[10px] text-gray-600">Form:</span>
+                    <FormGuide teamId={id} />
+                  </div>
+                </div>
+              </div>
+              <FavoriteButton itemId={id} itemType="team" className="scale-125" />
             </div>
           </div>
         </div>
@@ -66,7 +81,9 @@ export default function TeamPage({ params }: { params: Promise<{ id: string }> }
               {fixtures.map((f: any) => (
                 <div key={f.fixture.id} className="bg-gray-900/30 backdrop-blur border border-white/5 rounded-2xl p-4 flex items-center justify-between hover:bg-gray-800/40 transition-all">
                   <div className="flex items-center gap-3 flex-1">
-                    <img src={f.teams.home.logo} className="w-6 h-6 object-contain" alt="" />
+                    {f.teams.home.logo && (
+                      <img src={f.teams.home.logo} className="w-6 h-6 object-contain" alt="" />
+                    )}
                     <span className={`text-sm font-bold truncate ${f.teams.home.id === team.team.id ? 'text-green-500' : 'text-gray-300'}`}>
                       {f.teams.home.name}
                     </span>
@@ -81,7 +98,9 @@ export default function TeamPage({ params }: { params: Promise<{ id: string }> }
                     <span className={`text-sm font-bold truncate ${f.teams.away.id === team.team.id ? 'text-green-500' : 'text-gray-300'}`}>
                       {f.teams.away.name}
                     </span>
-                    <img src={f.teams.away.logo} className="w-6 h-6 object-contain" alt="" />
+                    {f.teams.away.logo && (
+                      <img src={f.teams.away.logo} className="w-6 h-6 object-contain" alt="" />
+                    )}
                   </div>
                 </div>
               ))}
@@ -96,7 +115,9 @@ export default function TeamPage({ params }: { params: Promise<{ id: string }> }
             <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
               {squad.map((player: any) => (
                 <div key={player.id} className="bg-gray-900/30 backdrop-blur border border-white/5 rounded-xl p-3 text-center hover:bg-gray-800/40 transition-all">
-                  <img src={player.photo} alt={player.name} className="w-16 h-16 rounded-full mx-auto mb-2 border-2 border-gray-800" />
+                  {player.photo && (
+                    <img src={player.photo} alt={player.name} className="w-16 h-16 rounded-full mx-auto mb-2 border-2 border-gray-800" />
+                  )}
                   <div className="text-sm font-bold text-gray-100 truncate">{player.name}</div>
                   <div className="text-[10px] font-bold text-gray-500 uppercase tracking-widest">{player.position}</div>
                   {player.number && <div className="mt-1 text-xs font-black text-blue-500">#{player.number}</div>}
@@ -158,7 +179,9 @@ export default function TeamPage({ params }: { params: Promise<{ id: string }> }
                 <span className="text-gray-400 font-medium">City</span>
                 <span className="text-white font-bold">{team.venue.city}</span>
               </div>
-              <img src={team.venue.image} alt={team.venue.name} className="w-full h-32 object-cover rounded-xl mt-2 border border-gray-800 shadow-inner" />
+              {team.venue.image && (
+                <img src={team.venue.image} alt={team.venue.name} className="w-full h-32 object-cover rounded-xl mt-2 border border-gray-800 shadow-inner" />
+              )}
             </div>
           </div>
         </div>

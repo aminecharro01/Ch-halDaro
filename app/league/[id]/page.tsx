@@ -3,6 +3,7 @@ import useSWR from 'swr';
 import { use } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
+import { FavoriteButton } from '@/components/FavoriteButton';
 
 const fetcher = (url: string) => fetch(url).then(res => res.json());
 
@@ -30,6 +31,27 @@ export default function LeaguePage({ params }: { params: Promise<{ id: string }>
 
   return (
     <div className="max-w-7xl mx-auto p-4 space-y-12 animate-fade-up">
+      <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 bg-gray-900/60 p-8 rounded-3xl border border-white/5 relative overflow-hidden backdrop-blur-md">
+        <div className="flex items-center gap-6 relative z-10">
+          <div className="bg-white/5 p-4 rounded-2xl border border-white/10 shadow-inner">
+             {standings?.[0]?.[0]?.league?.logo && (
+               <Image src={standings[0][0].league.logo} width={64} height={64} className="w-16 h-16 object-contain" alt="" />
+             )}
+          </div>
+          <div>
+            <h1 className="text-4xl md:text-5xl font-black text-white tracking-tighter uppercase">
+              {standings?.[0]?.[0]?.league?.name || "League Details"}
+            </h1>
+            <p className="text-gray-500 font-bold uppercase tracking-widest text-xs mt-1">Saison 2024-2025</p>
+          </div>
+        </div>
+        <div className="flex gap-4 relative z-10">
+          <FavoriteButton itemId={id} itemType="league" className="scale-125" />
+        </div>
+        
+        {/* Decorative background element */}
+        <div className="absolute -top-24 -right-24 w-64 h-64 bg-blue-500/10 blur-[100px] rounded-full"></div>
+      </div>
       {/* Top Fixtures / Upcoming */}
       {nextFixtures.length > 0 && (
         <section className="space-y-6">
@@ -43,7 +65,9 @@ export default function LeaguePage({ params }: { params: Promise<{ id: string }>
                 <div className="flex flex-col items-center gap-3">
                   <div className="flex items-center justify-between w-full px-2">
                     <div className="flex flex-col items-center gap-1 flex-1">
-                      <Image src={f.teams.home.logo} width={32} height={32} className="w-8 h-8 object-contain" alt="" />
+                      {f.teams.home.logo && (
+                        <Image src={f.teams.home.logo} width={32} height={32} className="w-8 h-8 object-contain" alt="" />
+                      )}
                       <span className="text-[10px] font-bold text-gray-400 text-center uppercase truncate w-20">{f.teams.home.name}</span>
                     </div>
                     <div className="flex flex-col items-center px-4">
@@ -51,7 +75,9 @@ export default function LeaguePage({ params }: { params: Promise<{ id: string }>
                       <span className="text-[8px] font-bold text-gray-500 uppercase">{new Date(f.fixture.date).toLocaleDateString()}</span>
                     </div>
                     <div className="flex flex-col items-center gap-1 flex-1">
-                      <Image src={f.teams.away.logo} width={32} height={32} className="w-8 h-8 object-contain" alt="" />
+                      {f.teams.away.logo && (
+                        <Image src={f.teams.away.logo} width={32} height={32} className="w-8 h-8 object-contain" alt="" />
+                      )}
                       <span className="text-[10px] font-bold text-gray-400 text-center uppercase truncate w-20">{f.teams.away.name}</span>
                     </div>
                   </div>
@@ -94,7 +120,9 @@ export default function LeaguePage({ params }: { params: Promise<{ id: string }>
                         <td className="px-4 py-3 text-center font-bold text-gray-400">{row.rank}</td>
                         <td className="px-4 py-3">
                           <Link href={`/team/${row.team.id}`} className="flex items-center gap-2 group">
-                            <Image src={row.team.logo} width={20} height={20} className="w-5 h-5 object-contain" alt="" />
+                            {row.team.logo && (
+                              <Image src={row.team.logo} width={20} height={20} className="w-5 h-5 object-contain" alt="" />
+                            )}
                             <span className="font-medium text-gray-200 group-hover:text-white transition-colors truncate max-w-[120px]">{row.team.name}</span>
                           </Link>
                         </td>
@@ -123,7 +151,9 @@ export default function LeaguePage({ params }: { params: Promise<{ id: string }>
               {lastFixtures.map((f: any) => (
                 <Link href={`/match/${f.fixture.id}`} key={f.fixture.id} className="bg-gray-900/30 backdrop-blur border border-white/5 rounded-2xl p-4 flex items-center justify-between hover:bg-gray-800/40 transition-all">
                   <div className="flex items-center gap-3 flex-1">
-                    <Image src={f.teams.home.logo} width={24} height={24} className="w-6 h-6 object-contain" alt="" />
+                    {f.teams.home.logo && (
+                      <Image src={f.teams.home.logo} width={24} height={24} className="w-6 h-6 object-contain" alt="" />
+                    )}
                     <span className="text-xs font-bold text-gray-300 truncate">{f.teams.home.name}</span>
                   </div>
                   <div className="px-4 flex flex-col items-center">
@@ -132,7 +162,9 @@ export default function LeaguePage({ params }: { params: Promise<{ id: string }>
                   </div>
                   <div className="flex items-center gap-3 flex-1 justify-end">
                     <span className="text-xs font-bold text-gray-300 truncate">{f.teams.away.name}</span>
-                    <Image src={f.teams.away.logo} width={24} height={24} className="w-6 h-6 object-contain" alt="" />
+                    {f.teams.away.logo && (
+                      <Image src={f.teams.away.logo} width={24} height={24} className="w-6 h-6 object-contain" alt="" />
+                    )}
                   </div>
                 </Link>
               ))}
@@ -149,7 +181,9 @@ export default function LeaguePage({ params }: { params: Promise<{ id: string }>
             <div className="space-y-3">
               {topScorers.slice(0, 10).map((s: any) => (
                 <div key={s.player.id} className="flex items-center gap-3 bg-gray-900/50 p-3 rounded-2xl border border-white/5">
-                  <Image src={s.player.photo} width={32} height={32} className="w-8 h-8 rounded-full bg-gray-800" alt="" />
+                  {s.player.photo && (
+                    <Image src={s.player.photo} width={32} height={32} className="w-8 h-8 rounded-full bg-gray-800" alt="" />
+                  )}
                   <div className="flex-1 min-w-0">
                     <div className="text-xs font-bold text-gray-200 truncate">{s.player.name}</div>
                     <div className="text-[8px] text-gray-500 uppercase font-black">{s.statistics[0].team.name}</div>
@@ -167,7 +201,9 @@ export default function LeaguePage({ params }: { params: Promise<{ id: string }>
             <div className="space-y-3">
               {topAssists.slice(0, 10).map((s: any) => (
                 <div key={s.player.id} className="flex items-center gap-3 bg-gray-900/50 p-3 rounded-2xl border border-white/5">
-                  <Image src={s.player.photo} width={32} height={32} className="w-8 h-8 rounded-full bg-gray-800" alt="" />
+                  {s.player.photo && (
+                    <Image src={s.player.photo} width={32} height={32} className="w-8 h-8 rounded-full bg-gray-800" alt="" />
+                  )}
                   <div className="flex-1 min-w-0">
                     <div className="text-xs font-bold text-gray-200 truncate">{s.player.name}</div>
                     <div className="text-[8px] text-gray-500 uppercase font-black">{s.statistics[0].team.name}</div>

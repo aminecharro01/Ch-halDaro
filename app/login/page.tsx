@@ -1,10 +1,13 @@
+import { use } from 'react'
 import { login, signup } from './actions'
 
 export default function LoginPage({
   searchParams,
 }: {
-  searchParams: { error?: string }
+  searchParams: Promise<{ error?: string }>
 }) {
+  const params = use(searchParams);
+  
   return (
     <div className="flex min-h-[70vh] items-center justify-center p-4">
       <div className="w-full max-w-xl space-y-8 bg-gray-900/50 p-8 rounded-3xl border border-gray-800 backdrop-blur-md">
@@ -13,9 +16,9 @@ export default function LoginPage({
           <p className="mt-2 text-sm text-gray-400">Manage your account and follow your teams</p>
         </div>
 
-        {searchParams?.error && (
+        {params?.error && (
           <div className="bg-red-950/50 border border-red-900 text-red-400 p-3 rounded-lg text-sm text-center">
-            {searchParams.error}
+            {params.error}
           </div>
         )}
 

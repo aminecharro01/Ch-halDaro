@@ -1,16 +1,38 @@
-import { fetchFootballApi } from '@/lib/api-football';
+import { getLeagueStandings, getLeagueEventsNext } from '@/lib/thesportsdb';
+import { mapStandings, mapMatch } from '@/lib/api-adapter';
 import Image from 'next/image';
 
 export default async function WorldCup() {
-  // Fetch tournament standings
+  // Fetch tournament standings (World Cup ID in TSDB is 4429)
   let standings = [];
   try {
-    const data = await fetchFootballApi('/standings', { league: '1', season: '2022' });
-    if (data && data[0] && data[0].league && data[0].league.standings) {
-      standings = data[0].league.standings;
+    const data = await getLeagueStandings('4429', '2026');
+    const tableData = Array.isArray(data) ? data : (data?.table || data?.standings || []);
+    
+    if (tableData.length > 0) {
+      // TSDB table is usually flat, but we want to group by 'strGroup' if possible
+      const rawStandings = mapStandings(tableData);
+      const groupsMap: Record<string, any[]> = {};
+      rawStandings.forEach(row => {
+        const group = row.group || 'Group A';
+        if (!groupsMap[group]) groupsMap[group] = [];
+        groupsMap[group].push(row);
+      });
+      standings = Object.values(groupsMap);
     }
   } catch (e) {
     console.error("Failed to fetch WC standings", e);
+  }
+
+  let fixtures = [];
+  try {
+    const data = await getLeagueEventsNext('4429');
+    const eventData = Array.isArray(data) ? data : (data?.events || data?.fixtures || []);
+    if (eventData.length > 0) {
+      fixtures = eventData.map(mapMatch);
+    }
+  } catch (e) {
+    console.error("Failed to fetch WC fixtures", e);
   }
 
   // Fallback if no data
@@ -58,6 +80,40 @@ export default async function WorldCup() {
             );
           })}
         </div>
+      </section>
+
+      <section>
+        <h2 className="text-xl font-bold text-gray-200 mb-6 flex items-center gap-2">
+          <span className="text-blue-500 block w-2 h-6 rounded-sm bg-blue-500"></span>
+          Upcoming Fixtures
+        </h2>
+        {fixtures.length > 0 ? (
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {fixtures.map((match: any) => (
+              <div key={match.fixture.id} className="bg-gray-900/40 border border-gray-800 rounded-2xl p-4 flex justify-between items-center">
+                <div className="flex items-center gap-3 flex-1">
+                  {match.teams.home.logo && (
+                    <Image src={match.teams.home.logo} alt="" width={24} height={24} />
+                  )}
+                  <span className="text-sm font-bold truncate">{match.teams.home.name}</span>
+                </div>
+                <div className="px-4 text-xs font-mono text-gray-500">
+                  {new Date(match.fixture.date).toLocaleDateString()}
+                </div>
+                <div className="flex items-center gap-3 flex-1 justify-end text-right">
+                  <span className="text-sm font-bold truncate">{match.teams.away.name}</span>
+                  {match.teams.away.logo && (
+                    <Image src={match.teams.away.logo} alt="" width={24} height={24} />
+                  )}
+                </div>
+              </div>
+            ))}
+          </div>
+        ) : (
+          <div className="bg-gray-900 border border-gray-800 rounded-2xl p-10 text-center border-dashed">
+            <div className="text-gray-500 italic">Fixtures will be announced soon</div>
+          </div>
+        )}
       </section>
 
       <section className="opacity-50">

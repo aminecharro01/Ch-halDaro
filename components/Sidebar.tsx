@@ -3,19 +3,20 @@ import { Trophy, Globe, Medal } from 'lucide-react';
 
 export function Sidebar() {
   const topTeams = [
-    { id: '541', name: 'Real Madrid', img: 'https://media.api-sports.io/football/teams/541.png' },
-    { id: '50', name: 'Manchester City', img: 'https://media.api-sports.io/football/teams/50.png' },
-    { id: '85', name: 'PSG', img: 'https://media.api-sports.io/football/teams/85.png' },
-    { id: '157', name: 'Bayern Munich', img: 'https://media.api-sports.io/football/teams/157.png' },
-    { id: '42', name: 'Arsenal', img: 'https://media.api-sports.io/football/teams/42.png' },
+    { id: '133602', name: 'Real Madrid', img: 'https://www.thesportsdb.com/images/media/team/badge/small/v767ar1680190562.png' },
+    { id: '133613', name: 'Manchester City', img: 'https://www.thesportsdb.com/images/media/team/badge/small/v2v9v31680191836.png' },
+    { id: '133714', name: 'PSG', img: 'https://www.thesportsdb.com/images/media/team/badge/small/66048q1611394142.png' },
+    { id: '133664', name: 'Bayern Munich', img: 'https://www.thesportsdb.com/images/media/team/badge/small/1vj2441680190928.png' },
+    { id: '133604', name: 'Arsenal', img: 'https://www.thesportsdb.com/images/media/team/badge/small/uvpuvt1448813540.png' },
   ];
 
   const topCompetitions = [
-    { id: '2', name: 'Champions League' },
-    { id: '39', name: 'Premier League' },
-    { id: '140', name: 'La Liga' },
-    { id: '135', name: 'Serie A' },
-    { id: '78', name: 'Bundesliga' },
+    { id: '4480', name: 'Champions League' },
+    { id: '4328', name: 'Premier League' },
+    { id: '4335', name: 'La Liga' },
+    { id: '4332', name: 'Serie A' },
+    { id: '4331', name: 'Bundesliga' },
+    { id: '4520', name: 'Botola Pro' },
   ];
 
   const regions = [

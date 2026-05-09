@@ -1,4 +1,5 @@
-import { fetchFootballApi } from '@/lib/api-football';
+import { getTeamEventsPast } from '@/lib/thesportsdb';
+import { mapMatch } from '@/lib/api-adapter';
 import { NextResponse } from 'next/server';
 
 export async function GET(request: Request) {
@@ -10,9 +11,10 @@ export async function GET(request: Request) {
   }
 
   try {
-    // Fetch last 10 matches for the team
-    const data = await fetchFootballApi('/fixtures', { team: id, last: '10' });
-    return NextResponse.json(data);
+    const data = await getTeamEventsPast(id);
+    const eventList = Array.isArray(data) ? data : (data.results || []);
+    const matches = eventList.map(mapMatch);
+    return NextResponse.json(matches);
   } catch (error: any) {
     return NextResponse.json({ error: error.message }, { status: 500 });
   }

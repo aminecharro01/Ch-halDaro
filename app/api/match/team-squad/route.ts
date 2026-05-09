@@ -1,4 +1,5 @@
-import { fetchFootballApi } from '@/lib/api-football';
+import { getTeamSquad } from '@/lib/thesportsdb';
+import { mapSquad } from '@/lib/api-adapter';
 import { NextResponse } from 'next/server';
 
 export async function GET(request: Request) {
@@ -10,8 +11,9 @@ export async function GET(request: Request) {
   }
 
   try {
-    const data = await fetchFootballApi('/players/squads', { team: id });
-    return NextResponse.json(data);
+    const data = await getTeamSquad(id);
+    const players = mapSquad(data);
+    return NextResponse.json([{ players }]); // Wrap in array to match expected format
   } catch (error: any) {
     return NextResponse.json({ error: error.message }, { status: 500 });
   }
