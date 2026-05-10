@@ -4,7 +4,7 @@ import Image from 'next/image';
 
 export default async function WorldCup() {
   // Fetch tournament standings (World Cup ID in TSDB is 4429)
-  let standings = [];
+  let standings: any[] = [];
   try {
     const data = await getLeagueStandings('4429', '2026');
     const tableData = Array.isArray(data) ? data : (data?.table || data?.standings || []);
@@ -24,7 +24,7 @@ export default async function WorldCup() {
     console.error("Failed to fetch WC standings", e);
   }
 
-  let fixtures = [];
+  let fixtures: any[] = [];
   try {
     const data = await getLeagueEventsNext('4429');
     const eventData = Array.isArray(data) ? data : (data?.events || data?.fixtures || []);

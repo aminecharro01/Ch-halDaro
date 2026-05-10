@@ -10,10 +10,10 @@ export async function GET(request: Request) {
     const eventList = Array.isArray(data) ? data : (data.events || data.livescore || []);
     const matches = eventList
       .filter((m: any) => (m.strSport || m.sport) === 'Soccer')
-      .map(mapMatch);
+      .map((m: any) => mapMatch(m));
 
     // Deduplicate by fixture ID
-    const uniqueMatches = Array.from(new Map(matches.map(m => [m.fixture.id, m])).values());
+    const uniqueMatches = Array.from(new Map(matches.map((m: any) => [m.fixture.id, m])).values());
 
     return NextResponse.json({ response: uniqueMatches });
   } catch (error: any) {

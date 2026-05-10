@@ -92,6 +92,7 @@ export async function GET() {
         }
         return NextResponse.json({ success: true, sent });
       }
+    }
 
     // Fallback if no Supabase configured
     if (!fs.existsSync(filePath)) {

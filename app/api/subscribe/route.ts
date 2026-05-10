@@ -1,46 +1,112 @@
 import { NextRequest, NextResponse } from 'next/server';
-import fs from 'fs';
-import path from 'path';
-import os from 'os';
-
-// Vercel only allows writing to /tmp
-const tmpDir = os.tmpdir();
-const filePath = path.join(tmpDir, 'subscriptions.json');
 
 export async function POST(request: NextRequest) {
   try {
     const sub = await request.json();
-    let subs = [];
-    
-    if (process.env.NEXT_PUBLIC_SUPABASE_URL && process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY) {
-      const { createClient } = await import('@/lib/supabase/server');
-      const supabase = await createClient();
-      const { data: { user } } = await supabase.auth.getUser();
-      
-      if (user) {
-        // Upsert the subscription into Supabase tied to the user
-        await supabase.from('subscriptions').upsert({
-          user_id: user.id,
-          subscription: sub,
-        }, { onConflict: 'endpoint' });
-        return NextResponse.json({ success: true, count: 1 });
+
+    // Validate subscription object
+    if (!sub.endpoint || !sub.keys) {
+      return NextResponse.json(
+        { error: 'Invalid push subscription format' },
+        { status: 400 }
+      );
+    }
+
+    // Try to save to Supabase first (for authenticated users)
+    if (process.env.NEXT_PUBLIC_SUPABASE_URL) {
+      try {
+        const { createClient } = await import('@/lib/supabase/server');
+        const supabase = await createClient();
+        const { data: { user } } = await supabase.auth.getUser();
+
+        if (user) {
+          const { error } = await supabase
+            .from('subscriptions')
+            .upsert(
+              {
+                user_id: user.id,
+                subscription: sub,
+              },
+              { onConflict: 'user_id' }
+            );
+
+          if (error) {
+            console.error('Supabase subscription error:', error);
+            return NextResponse.json(
+              { error: 'Failed to save subscription to database' },
+              { status: 500 }
+            );
+          }
+
+          return NextResponse.json({
+            success: true,
+            message: 'Subscription saved',
+          });
+        }
+      } catch (err) {
+        console.error('Supabase error:', err);
+        // Fall through to error response - don't use temporary storage
+        return NextResponse.json(
+          { error: 'Database connection failed. Please try again.' },
+          { status: 500 }
+        );
       }
     }
 
-    // Fallback to local /tmp for anonymous or missing supabase setup
-    if (fs.existsSync(filePath)) {
-      subs = JSON.parse(fs.readFileSync(filePath, 'utf-8'));
-    }
-    
-    // Deduplicate
-    if (!subs.find((s: any) => s.endpoint === sub.endpoint)) {
-      subs.push(sub);
-      fs.writeFileSync(filePath, JSON.stringify(subs));
-    }
-    
-    return NextResponse.json({ success: true, count: subs.length });
+    return NextResponse.json(
+      { error: 'Push notifications not configured' },
+      { status: 500 }
+    );
   } catch (err: any) {
-    console.error("Subscribe Error", err);
-    return NextResponse.json({ error: err.message }, { status: 500 });
+    console.error('Subscribe error:', err);
+    return NextResponse.json(
+      { error: err.message || 'Failed to process subscription' },
+      { status: 500 }
+    );
+  }
+}
+
+export async function DELETE(request: NextRequest) {
+  try {
+    const { endpoint } = await request.json();
+
+    if (!endpoint) {
+      return NextResponse.json(
+        { error: 'Missing subscription endpoint' },
+        { status: 400 }
+      );
+    }
+
+    const { createClient } = await import('@/lib/supabase/server');
+    const supabase = await createClient();
+    const { data: { user } } = await supabase.auth.getUser();
+
+    if (!user) {
+      return NextResponse.json(
+        { error: 'Unauthorized' },
+        { status: 401 }
+      );
+    }
+
+    const { error } = await supabase
+      .from('subscriptions')
+      .delete()
+      .eq('user_id', user.id);
+
+    if (error) {
+      console.error('Unsubscribe error:', error);
+      return NextResponse.json(
+        { error: 'Failed to unsubscribe' },
+        { status: 500 }
+      );
+    }
+
+    return NextResponse.json({ success: true });
+  } catch (err: any) {
+    console.error('Delete subscription error:', err);
+    return NextResponse.json(
+      { error: err.message || 'Failed to unsubscribe' },
+      { status: 500 }
+    );
   }
 }

@@ -16,6 +16,7 @@ interface FavoriteButtonProps {
 export function FavoriteButton({ itemId, itemType, itemName, itemLogo, className = "" }: FavoriteButtonProps) {
   const { data: favorites, mutate } = useSWR('/api/favorites', fetcher);
   const [isUpdating, setIsUpdating] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   const idStr = itemId.toString();
   const isFavorited = Array.isArray(favorites) && favorites.some(
@@ -28,6 +29,7 @@ export function FavoriteButton({ itemId, itemType, itemName, itemLogo, className
     if (isUpdating) return;
 
     setIsUpdating(true);
+    setError(null);
     const method = isFavorited ? 'DELETE' : 'POST';
 
     try {
@@ -37,28 +39,40 @@ export function FavoriteButton({ itemId, itemType, itemName, itemLogo, className
         body: JSON.stringify({ itemId: idStr, itemType, itemName, itemLogo }),
       });
 
-      if (res.ok) {
-        mutate();
+      if (!res.ok) {
+        const errorData = await res.json();
+        throw new Error(errorData.error || `Failed to ${method === 'POST' ? 'add' : 'remove'} favorite`);
       }
-    } catch (err) {
+
+      await mutate();
+    } catch (err: any) {
       console.error("Failed to toggle favorite", err);
+      setError(err.message || 'Failed to update favorite');
+      setTimeout(() => setError(null), 3000);
     } finally {
       setIsUpdating(false);
     }
   };
 
   return (
-    <button
-      onClick={toggleFavorite}
-      disabled={isUpdating}
-      className={`p-2 rounded-full transition-all hover:scale-110 active:scale-95 ${
-        isFavorited 
-          ? 'bg-red-500/20 text-red-500 border border-red-500/30 shadow-[0_0_15px_rgba(239,68,68,0.3)]' 
-          : 'bg-gray-800/50 text-gray-400 border border-gray-700/50 hover:bg-gray-700'
-      } ${className} ${isUpdating ? 'opacity-50 cursor-wait' : ''}`}
-      aria-label={isFavorited ? "Remove from favorites" : "Add to favorites"}
-    >
-      <Heart className={`w-5 h-5 ${isFavorited ? 'fill-current' : ''}`} />
-    </button>
+    <div className="relative group">
+      <button
+        onClick={toggleFavorite}
+        disabled={isUpdating}
+        className={`p-2 rounded-full transition-all hover:scale-110 active:scale-95 ${
+          isFavorited 
+            ? 'bg-red-500/20 text-red-500 border border-red-500/30 shadow-[0_0_15px_rgba(239,68,68,0.3)]' 
+            : 'bg-gray-800/50 text-gray-400 border border-gray-700/50 hover:bg-gray-700'
+        } ${className} ${isUpdating ? 'opacity-50 cursor-wait' : ''}`}
+        aria-label={isFavorited ? "Remove from favorites" : "Add to favorites"}
+      >
+        <Heart className={`w-5 h-5 ${isFavorited ? 'fill-current' : ''}`} />
+      </button>
+      {error && (
+        <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-3 py-1.5 bg-red-900 text-red-200 text-xs rounded-lg whitespace-nowrap shadow-lg border border-red-700">
+          {error}
+        </div>
+      )}
+    </div>
   );
 }
