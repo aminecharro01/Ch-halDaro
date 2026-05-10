@@ -12,16 +12,16 @@ export async function GET(request: Request, { params }: { params: Promise<{ id: 
     }
 
     const [eventData, timelineData] = await Promise.all([
-      getMatchDetail(id).catch(() => ({ events: [] })),
-      getMatchTimeline(id).catch(() => ({ timeline: [] }))
+      getMatchDetail(id).catch(() => []),
+      getMatchTimeline(id).catch(() => [])
     ]);
-
-    const event = eventData.events?.[0];
+    
+    const event = Array.isArray(eventData) ? eventData[0] : null;
     if (!event) {
       return NextResponse.json({ summary: "Match data not found." });
     }
 
-    const timeline = timelineData.timeline || [];
+    const timeline = Array.isArray(timelineData) ? timelineData : [];
     const eventsStr = timeline.map((e: any) => `${e.intTime}': ${e.strTimeline} by ${e.strPlayer}`).join(', ');
 
     const genAI = new GoogleGenerativeAI(apiKey);

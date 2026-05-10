@@ -17,7 +17,13 @@ export function MatchCard({ match }: { match: any }) {
           )}
           <span className="text-[10px] font-black text-gray-500 uppercase tracking-widest group-hover:text-gray-400 transition-colors">{match.league.name}</span>
         </div>
-        <FavoriteButton itemId={match.fixture.id} itemType="match" className="scale-75" />
+        <FavoriteButton 
+          itemId={match.fixture.id} 
+          itemType="match" 
+          itemName={`${match.teams.home.name} vs ${match.teams.away.name}`}
+          itemLogo={match.league.logo}
+          className="scale-75" 
+        />
       </div>
 
       <Link href={`/match/${match.fixture.id}`} className="block space-y-4 relative z-10">

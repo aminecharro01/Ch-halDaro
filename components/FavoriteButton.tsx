@@ -8,10 +8,12 @@ const fetcher = (url: string) => fetch(url).then(res => res.json());
 interface FavoriteButtonProps {
   itemId: string | number;
   itemType: 'team' | 'league' | 'match';
+  itemName?: string;
+  itemLogo?: string;
   className?: string;
 }
 
-export function FavoriteButton({ itemId, itemType, className = "" }: FavoriteButtonProps) {
+export function FavoriteButton({ itemId, itemType, itemName, itemLogo, className = "" }: FavoriteButtonProps) {
   const { data: favorites, mutate } = useSWR('/api/favorites', fetcher);
   const [isUpdating, setIsUpdating] = useState(false);
 
@@ -32,7 +34,7 @@ export function FavoriteButton({ itemId, itemType, className = "" }: FavoriteBut
       const res = await fetch('/api/favorites', {
         method,
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ itemId: idStr, itemType }),
+        body: JSON.stringify({ itemId: idStr, itemType, itemName, itemLogo }),
       });
 
       if (res.ok) {

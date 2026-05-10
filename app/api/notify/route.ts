@@ -24,8 +24,7 @@ export async function GET() {
       const supabase = await createClient();
       
       const today = new Date().toISOString().split('T')[0];
-      const data = await getEventsByDay(today).catch(() => ({ events: [] }));
-      const matches = data.events || [];
+      const matches = await getEventsByDay(today).catch(() => []);
       
       // Filter for live matches. TSDB status for live is often '1H', '2H', 'HT', or 'Live'
       const liveMatches = matches.filter((m: any) => 

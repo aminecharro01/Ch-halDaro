@@ -27,8 +27,8 @@ export default async function ProfilePage() {
     .select('*')
     .eq('user_id', user.id)
 
-  const leagues = favorites?.filter(f => f.type === 'league') || []
-  const teams = favorites?.filter(f => f.type === 'team') || []
+  const leagues = favorites?.filter(f => f.item_type === 'league') || []
+  const teams = favorites?.filter(f => f.item_type === 'team') || []
 
   // Add a server action to remove favorites inline
   async function removeFavorite(formData: FormData) {

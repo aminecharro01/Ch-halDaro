@@ -2,7 +2,7 @@
 import { useState, useEffect } from "react";
 
 export default function AlertsPage() {
-  const [followed, setFollowed] = useState<any[]>([]);
+  const [isRegistering, setIsRegistering] = useState(false);
   const [prefs, setPrefs] = useState({ goals: true, cards: true, kickoff: true });
 
   useEffect(() => {
@@ -35,31 +35,38 @@ export default function AlertsPage() {
         return;
       }
 
-      const registration = await navigator.serviceWorker.register('/sw.js');
+      // Get existing registration or register a new one
+      const existing = await navigator.serviceWorker.getRegistration();
+      const registration = existing ?? (await navigator.serviceWorker.register('/sw.js'));
+
+      // Ensure the service worker is active
+      await navigator.serviceWorker.ready;
+
       const publicVapidKey = process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY;
-      
       if (!publicVapidKey) {
         throw new Error('VAPID public key is missing');
       }
 
       const subscription = await registration.pushManager.subscribe({
         userVisibleOnly: true,
-        applicationServerKey: urlBase64ToUint8Array(publicVapidKey)
+        applicationServerKey: urlBase64ToUint8Array(publicVapidKey),
       });
-      
+
       const response = await fetch('/api/subscribe', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(subscription)
+        body: JSON.stringify(subscription),
       });
 
-      if (!response.ok) throw new Error('Failed to save subscription');
+      if (!response.ok) {
+        throw new Error('Failed to save subscription');
+      }
 
       alert('Push notifications enabled!');
     } catch (err: any) {
       console.error('Push error:', err);
       if (err.name === 'AbortError') {
-        alert('Push registration was aborted. Please try again or check if you have another request pending.');
+        alert('Push registration was aborted. Please try again.');
       } else {
         alert(`Failed to enable push: ${err.message}`);
       }
@@ -72,9 +79,22 @@ export default function AlertsPage() {
         <h1 className="text-2xl font-bold text-white mb-2">Notification Center</h1>
         <p className="text-green-200/70 text-sm mb-6">Stay up to date with your favorite teams.</p>
         
-        <button onClick={requestPush} className="w-full sm:w-auto bg-live-green text-gray-950 font-bold px-6 py-3 rounded-xl hover:bg-green-400 transition shadow-lg shadow-green-900/50">
-          Enable Web Push Alerts
-        </button>
+        <div className="flex flex-col sm:flex-row gap-4">
+          <button onClick={requestPush} className="w-full sm:w-auto bg-live-green text-gray-950 font-bold px-6 py-3 rounded-xl hover:bg-green-400 transition shadow-lg shadow-green-900/50">
+            Enable Web Push Alerts
+          </button>
+          <button 
+            onClick={async () => {
+              const res = await fetch('/api/test-notification', { method: 'POST' });
+              const data = await res.json();
+              if (data.success) alert('Test notification sent!');
+              else alert('Error: ' + (data.error || 'Failed to send test notification'));
+            }}
+            className="w-full sm:w-auto bg-gray-800 text-white font-bold px-6 py-3 rounded-xl hover:bg-gray-700 transition border border-gray-700"
+          >
+            Send Test Notif
+          </button>
+        </div>
       </div>
 
       <div className="space-y-4 bg-gray-900/40 border border-gray-800/60 p-6 rounded-3xl">

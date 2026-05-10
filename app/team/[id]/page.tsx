@@ -64,7 +64,7 @@ export default function TeamPage({ params }: { params: Promise<{ id: string }> }
                   </div>
                 </div>
               </div>
-              <FavoriteButton itemId={id} itemType="team" className="scale-125" />
+              <FavoriteButton itemId={id} itemType="team" itemName={team?.team?.name} itemLogo={team?.team?.logo} className="scale-125" />
             </div>
           </div>
         </div>

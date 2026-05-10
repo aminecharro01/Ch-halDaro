@@ -46,7 +46,7 @@ export default function LeaguePage({ params }: { params: Promise<{ id: string }>
           </div>
         </div>
         <div className="flex gap-4 relative z-10">
-          <FavoriteButton itemId={id} itemType="league" className="scale-125" />
+          <FavoriteButton itemId={id} itemType="league" itemName={league?.name} itemLogo={league?.logo} className="scale-125" />
         </div>
         
         {/* Decorative background element */}

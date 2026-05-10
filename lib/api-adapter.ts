@@ -37,10 +37,14 @@ export const mapMatch = (tsdbMatch: any) => {
 const mapStatus = (status: string) => {
   if (!status) return 'NS';
   const s = status.toUpperCase();
-  if (s === 'NS' || s === 'NOT STARTED') return 'NS';
-  if (s === 'FT' || s === 'FINISHED' || s === 'MATCH FINISHED') return 'FT';
-  if (s.includes('HALF')) return s.includes('FIRST') ? '1H' : '2H';
+  if (s === 'NS' || s === 'NOT STARTED' || s === 'SCHEDULED' || s === 'POSTPONED') return 'NS';
+  if (s === 'FT' || s === 'FINISHED' || s === 'MATCH FINISHED' || s === 'FULL TIME') return 'FT';
+  if (s === '1H' || s === '1ST HALF' || s === 'FIRST HALF') return '1H';
+  if (s === '2H' || s === '2ND HALF' || s === 'SECOND HALF') return '2H';
   if (s === 'HT' || s === 'HALFTIME') return 'HT';
+  if (s === 'ET' || s === 'EXTRA TIME') return 'ET';
+  if (s === 'PEN' || s === 'PENALTY' || s === 'PENALTIES') return 'P';
+  if (s === 'LIVE' || s === 'IN PLAY') return '1H'; // Default to 1H if just "LIVE"
   return s.substring(0, 3); // Fallback
 };
 
