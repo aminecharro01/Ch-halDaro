@@ -7,10 +7,9 @@ export default async function WorldCup() {
   let standings: any[] = [];
   try {
     const data = await getLeagueStandings('4429', '2026');
-    const tableData = Array.isArray(data) ? data : (data?.table || data?.standings || []);
-    
+    const tableData = Array.isArray(data) ? data : [];
+
     if (tableData.length > 0) {
-      // TSDB table is usually flat, but we want to group by 'strGroup' if possible
       const rawStandings = mapStandings(tableData);
       const groupsMap: Record<string, any[]> = {};
       rawStandings.forEach(row => {

@@ -15,7 +15,6 @@ const LEAGUES = [
   { id: 4335, name: 'La Liga' },
   { id: 4332, name: 'Serie A' },
   { id: 4331, name: 'Bundesliga' },
-  { id: 4334, name: 'Ligue 1' },
   { id: 4520, name: 'Botola Pro' }
 ];
 

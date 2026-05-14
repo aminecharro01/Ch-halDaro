@@ -4,10 +4,22 @@ export const mapMatch = (tsdbMatch: any) => {
     fixture: {
       id: parseInt(tsdbMatch.idEvent || tsdbMatch.id),
       date: (tsdbMatch.dateEvent || tsdbMatch.date) + 'T' + (tsdbMatch.strTime || tsdbMatch.time || '00:00:00'),
+      venue: {
+        name: tsdbMatch.strVenue || "Stadium",
+        city: tsdbMatch.strCity || "City"
+      },
       status: {
+        long: tsdbMatch.strStatus || "Scheduled",
         short: mapStatus(tsdbMatch.strStatus || tsdbMatch.status),
-        elapsed: tsdbMatch.strProgress || tsdbMatch.progress || 0
-      }
+        elapsed: tsdbMatch.strProgress || tsdbMatch.progress || 0,
+        round: tsdbMatch.intRound
+      },
+      description: tsdbMatch.strDescriptionEN || null,
+      spectators:
+        tsdbMatch.intSpectators != null && tsdbMatch.intSpectators !== ''
+          ? parseInt(String(tsdbMatch.intSpectators), 10) || null
+          : null,
+      postponed: tsdbMatch.strPostponed || null
     },
     league: {
       id: parseInt(tsdbMatch.idLeague || tsdbMatch.league_id),
@@ -29,7 +41,8 @@ export const mapMatch = (tsdbMatch: any) => {
     goals: {
       home: parseInt(tsdbMatch.intHomeScore || tsdbMatch.home_score) || 0,
       away: parseInt(tsdbMatch.intAwayScore || tsdbMatch.away_score) || 0
-    }
+    },
+    video: tsdbMatch.strVideo || null
   };
 };
 
@@ -70,14 +83,21 @@ export const mapStandings = (tsdbTable: any[]) => {
 };
 
 export const mapTimeline = (tsdbTimeline: any[]) => {
-  if (!tsdbTimeline) return [];
-  return tsdbTimeline.map(item => ({
-    time: { elapsed: parseInt(item.intTime || item.time) },
-    team: { id: parseInt(item.idTeam || item.team_id), name: item.strTeam || item.team_name },
-    player: { name: item.strPlayer || item.player_name },
-    type: mapEventType(item.strTimeline || item.type),
-    detail: item.strTimelineDetail || item.detail
-  }));
+  if (!tsdbTimeline || !Array.isArray(tsdbTimeline)) return [];
+  return tsdbTimeline.map(item => {
+    const elapsed = parseInt(item.intTime || item.time || "0");
+    return {
+      time: { elapsed: isNaN(elapsed) ? 0 : elapsed },
+      team: { 
+        id: parseInt(item.idTeam || item.team_id), 
+        name: item.strTeam || (item.strHome === 'Yes' ? 'Home' : 'Away') 
+      },
+      player: { name: item.strPlayer || item.player_name || "Unknown Player" },
+      assist: item.strAssist ? { name: item.strAssist } : null,
+      type: mapEventType(item.strTimeline || item.type),
+      detail: item.strTimelineDetail || item.detail || ""
+    };
+  });
 };
 
 const mapEventType = (type: string) => {
@@ -110,7 +130,15 @@ export const mapLeague = (tsdbLeague: any) => {
     logo: tsdbLeague.strBadge || tsdbLeague.strLogo,
     banner: tsdbLeague.strBanner,
     country: tsdbLeague.strCountry,
-    season: tsdbLeague.strCurrentSeason
+    season: tsdbLeague.strCurrentSeason,
+    description: tsdbLeague.strDescriptionEN,
+    trophy: tsdbLeague.strTrophy,
+    social: {
+      website: tsdbLeague.strWebsite,
+      facebook: tsdbLeague.strFacebook,
+      twitter: tsdbLeague.strTwitter,
+      instagram: tsdbLeague.strInstagram,
+    }
   };
 };
 
@@ -121,7 +149,17 @@ export const mapTeam = (tsdbTeam: any) => {
       name: tsdbTeam.strTeam,
       logo: tsdbTeam.strBadge || tsdbTeam.strTeamBadge,
       country: tsdbTeam.strCountry,
-      founded: tsdbTeam.intFormedYear
+      founded: tsdbTeam.intFormedYear,
+      description: tsdbTeam.strDescriptionEN,
+      social: {
+        website: tsdbTeam.strWebsite,
+        facebook: tsdbTeam.strFacebook,
+        twitter: tsdbTeam.strTwitter,
+        instagram: tsdbTeam.strInstagram,
+      },
+      banner: tsdbTeam.strBanner,
+      equipment: tsdbTeam.strEquipment,
+      leagueId: tsdbTeam.idLeague
     },
     venue: {
       name: tsdbTeam.strStadium,
@@ -130,4 +168,28 @@ export const mapTeam = (tsdbTeam: any) => {
       image: tsdbTeam.strStadiumThumb
     }
   };
+};
+export type MatchStatisticsBlock = {
+  team: { name: string; id?: string };
+  statistics: { type: string; value: number | string }[];
+};
+
+export const mapStats = (tsdbStats: any[]): MatchStatisticsBlock[] => {
+  if (!tsdbStats || !Array.isArray(tsdbStats)) return [];
+  
+  // V2 stats are often per team or per stat type
+  // We want to return a normalized list of stat objects
+  const homeStats: { type: string; value: number | string }[] = [];
+  const awayStats: { type: string; value: number | string }[] = [];
+
+  tsdbStats.forEach(s => {
+    const type = s.strStat || s.type;
+    homeStats.push({ type, value: s.intHome });
+    awayStats.push({ type, value: s.intAway });
+  });
+
+  return [
+    { team: { name: tsdbStats[0]?.strHomeTeam || "Home" }, statistics: homeStats },
+    { team: { name: tsdbStats[0]?.strAwayTeam || "Away" }, statistics: awayStats }
+  ];
 };

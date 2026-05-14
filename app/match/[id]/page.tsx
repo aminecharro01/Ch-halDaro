@@ -1,181 +1,153 @@
 "use client";
 import useSWR from 'swr';
 import { use } from 'react';
-import { EventTimeline } from '@/components/EventTimeline';
-import { StatBar } from '@/components/StatBar';
-import { PredictionPanel } from '@/components/PredictionPanel';
-import { MatchAnalysis } from '@/components/MatchAnalysis';
-import { AISummary } from '@/components/AISummary';
-import { KeyBattle } from '@/components/KeyBattle';
 import Image from 'next/image';
+import Link from 'next/link';
+import { MapPin, Calendar, Clock, RefreshCw } from 'lucide-react';
+import { MatchDetailTabs } from '@/components/MatchDetailTabs';
 
-const fetcher = (url: string) => fetch(url).then(res => res.json());
+const fetcher = (url: string) => fetch(url).then((res) => res.json());
 
 export default function MatchPage({ params }: { params: Promise<{ id: string }> }) {
   const resolvedParams = use(params);
   const id = resolvedParams.id;
-  
-  const { data, error, isLoading } = useSWR(`/api/match/${id}`, fetcher, { 
-    refreshInterval: 60000,
-    revalidateOnFocus: true
+
+  const { data, error, isLoading, mutate, isValidating } = useSWR(`/api/match/${id}`, fetcher, {
+    refreshInterval: 0,
+    revalidateOnFocus: false,
   });
 
   const apiError = data?.error || error?.message;
-  if (isLoading) return <div className="text-center py-20 text-gray-500 animate-pulse">Loading match details...</div>;
-  if (apiError || !data?.fixture) return (
-    <div className="text-center py-20">
-      <div className="text-red-500 font-bold mb-2">Error loading match.</div>
-      {apiError && <div className="text-xs text-gray-500">{apiError}</div>}
-    </div>
-  );
+  if (isLoading) {
+    return (
+      <div className="text-center py-20 text-gray-500 animate-pulse font-black uppercase tracking-widest">
+        Gathering match data…
+      </div>
+    );
+  }
+  if (apiError || !data?.fixture) {
+    return (
+      <div className="text-center py-20 bg-red-950/20 border border-red-900/50 rounded-3xl">
+        <div className="text-red-500 font-black mb-2 uppercase tracking-tight">Match data unreachable</div>
+        {apiError && <div className="text-xs text-red-400/70 font-mono">{apiError}</div>}
+      </div>
+    );
+  }
 
   const match = data.fixture;
-  const isLive = ['1H', '2H', 'HT', 'ET', 'P'].includes(match.fixture?.status?.short);
-  const isNotStarted = match.fixture?.status?.short === 'NS';
-  const stats = data.statistics || [];
-  
-  const homeStats = stats.find((s: any) => s.team.id === match.teams.home.id)?.statistics || [];
-  const awayStats = stats.find((s: any) => s.team.id === match.teams.away.id)?.statistics || [];
-  
-  const getStat = (arr: any[], type: string) => arr.find((s: any) => s.type === type)?.value ?? 0;
+  const media = data.media || {};
+  const isLive = ['1H', '2H', 'HT', 'ET', 'P', 'LIVE'].includes(match.fixture?.status?.short);
+  const isFinished = ['FT', 'AET', 'PEN'].includes(match.fixture?.status?.short);
+  const isNotStarted = match.fixture?.status?.short === 'NS' || match.fixture?.status?.short === 'TBD';
 
-  const statTypes = [
-    "Ball Possession", "Total Shots", "Shots on Goal", 
-    "Corner Kicks", "Fouls", "Yellow Cards", "Red Cards"
-  ];
+  const elapsed = Number(match.fixture?.status?.elapsed) || 0;
 
   return (
-    <div className="space-y-6">
-      <div className="bg-gray-900/60 border border-gray-800 rounded-3xl p-6 md:p-8 text-center relative overflow-hidden backdrop-blur-sm">
-        <div className="absolute top-0 left-1/2 -translate-x-1/2 bg-gray-800 px-4 py-1 rounded-b-lg text-[10px] text-gray-400 uppercase tracking-widest font-bold">
-          {match.league.name}
-        </div>
-        <div className="flex justify-center items-center gap-4 md:gap-12 mt-4">
-          <div className="flex flex-col items-center gap-3 flex-1">
-            <Image src={match.teams.home.logo} alt={match.teams.home.name} width={80} height={80} className="w-16 h-16 md:w-20 md:h-20 object-contain drop-shadow-lg" />
-            <span className="font-bold text-lg md:text-xl text-gray-100">{match.teams.home.name}</span>
+    <div className="space-y-8 animate-fade-up max-w-6xl mx-auto">
+      {/* Scoreboard hero — similar to LiveScore header */}
+      <div className="relative overflow-hidden bg-black/50 border border-white/10 rounded-[2rem] md:rounded-[2.5rem] p-6 md:p-12">
+        {media.strThumb && (
+          <div className="absolute inset-0 z-0">
+            <Image src={media.strThumb} alt="" fill className="object-cover opacity-15 blur-md scale-110" priority />
+            <div className="absolute inset-0 bg-gradient-to-t from-black via-black/70 to-black/40" />
           </div>
-          <div className="flex flex-col items-center w-24 flex-shrink-0">
+        )}
+
+        <div className="relative z-10 flex flex-wrap items-center justify-between gap-4 mb-8">
+          <Link
+            href={`/league/${match.league.id}`}
+            className="inline-flex items-center gap-2 text-[10px] font-black uppercase tracking-[0.2em] text-white/70 hover:text-white"
+          >
+            {match.league.logo && <img src={match.league.logo} className="w-5 h-5 object-contain" alt="" />}
+            {match.league.name}
+          </Link>
+          <button
+            type="button"
+            onClick={() => void mutate()}
+            disabled={isValidating}
+            className="inline-flex items-center gap-2 px-3 py-2 rounded-xl border border-white/15 text-[10px] font-black uppercase tracking-widest text-white/70 hover:bg-white/10 disabled:opacity-40"
+          >
+            <RefreshCw className={`w-3.5 h-3.5 ${isValidating ? 'animate-spin' : ''}`} />
+            Refresh
+          </button>
+        </div>
+
+        <div className="relative z-10 flex flex-col md:flex-row items-center justify-between gap-8 md:gap-12">
+          <div className="flex flex-col items-center gap-4 flex-1 min-w-0">
+            <Image
+              src={match.teams.home.logo}
+              alt={match.teams.home.name}
+              width={96}
+              height={96}
+              className="w-20 h-20 md:w-28 md:h-28 object-contain drop-shadow-lg"
+            />
+            <Link href={`/team/${match.teams.home.id}`} className="font-black text-lg md:text-2xl text-white text-center hover:text-blue-400 transition truncate max-w-[220px]">
+              {match.teams.home.name}
+            </Link>
+          </div>
+
+          <div className="flex flex-col items-center shrink-0">
             {isLive ? (
-              <div className="flex items-center gap-1.5 mb-2 bg-live-green/10 text-live-green px-2 py-0.5 rounded-full border border-live-green/20">
-                <span className="w-1.5 h-1.5 bg-live-green rounded-full animate-pulse-dot"></span>
-                <span className="font-bold text-xs">
-                  {match.fixture.status.elapsed && parseInt(match.fixture.status.elapsed) > 0 
-                    ? `${match.fixture.status.elapsed}'` 
-                    : match.fixture.status.short}
-                </span>
+              <div className="flex items-center gap-2 mb-4 bg-red-600/20 text-red-400 px-4 py-2 rounded-full border border-red-500/30 text-[10px] font-black uppercase tracking-widest">
+                <span className="w-2 h-2 bg-red-500 rounded-full animate-pulse" />
+                Live {elapsed > 0 ? `${elapsed}'` : ''}
               </div>
-            ) : isNotStarted ? (
-              <div className="text-gray-400 font-bold text-xs mb-2">
-                {new Date(match.fixture.date).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-              </div>
+            ) : isFinished ? (
+              <div className="mb-4 text-[10px] font-black uppercase tracking-[0.2em] text-gray-500">Full time</div>
             ) : (
-              <div className="text-gray-500 font-bold text-xs mb-2 bg-gray-800 px-2 py-0.5 rounded-full">{match.fixture.status.short}</div>
+              <div className="mb-4 flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-blue-400">
+                <Clock className="w-3.5 h-3.5" />
+                Upcoming
+              </div>
             )}
-            <div className="text-3xl md:text-5xl font-black tracking-tighter bg-gray-950 px-4 py-2 md:px-6 md:py-3 rounded-2xl border border-gray-800 shadow-inner">
-              {match.goals.home ?? '-'}<span className="mx-2 md:mx-3 text-gray-700/50">:</span>{match.goals.away ?? '-'}
+            <div className="flex items-center gap-6 md:gap-10">
+              <span className="text-5xl md:text-7xl font-black text-white tabular-nums">{isNotStarted ? '–' : match.goals.home ?? 0}</span>
+              <span className="text-2xl font-black text-white/20">:</span>
+              <span className="text-5xl md:text-7xl font-black text-white tabular-nums">{isNotStarted ? '–' : match.goals.away ?? 0}</span>
             </div>
-          </div>
-          <div className="flex flex-col items-center gap-3 flex-1">
-            <Image src={match.teams.away.logo} alt={match.teams.away.name} width={80} height={80} className="w-16 h-16 md:w-20 md:h-20 object-contain drop-shadow-lg" />
-            <span className="font-bold text-lg md:text-xl text-gray-100">{match.teams.away.name}</span>
-          </div>
-        </div>
-      </div>
-
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <div className="col-span-1 space-y-6">
-          <AISummary matchId={id} />
-          <KeyBattle matchId={id} />
-          
-          <div className="border border-gray-800/80 rounded-2xl p-5 bg-gray-900/30 hidden md:block">
-            <h3 className="text-xs font-bold text-gray-500 uppercase tracking-widest mb-5 flex items-center gap-2">
-              <span>📋</span> Lineups
-            </h3>
-            {data.lineups.length > 0 ? (
-              <div className="space-y-6">
-                {data.lineups.map((lineup: any, i: number) => (
-                  <div key={i}>
-                    <div className="font-bold text-gray-200 mb-3 pb-2 border-b border-gray-800/50 flex justify-between">
-                      <span>{lineup.team.name}</span>
-                      <span className="text-gray-500 font-mono text-xs bg-gray-800 px-1.5 py-0.5 rounded">{lineup.formation}</span>
-                    </div>
-                    <ul className="space-y-2 text-sm text-gray-400">
-                      {lineup.startXI.map((player: any, idx: number) => (
-                        <li key={idx} className="flex gap-3 items-center group">
-                          <span className="w-6 h-6 flex items-center justify-center bg-gray-800/50 text-gray-500 rounded text-xs group-hover:bg-gray-700 transition">
-                            {player.player.number}
-                          </span>
-                          <span className="group-hover:text-gray-200 transition">{player.player.name}</span>
-                        </li>
-                      ))}
-                    </ul>
-                  </div>
-                ))}
-              </div>
-            ) : (
-              <div className="text-gray-600 text-sm italic">Lineups not available</div>
+            {isNotStarted && (
+              <p className="mt-3 text-sm text-white/50 font-bold">
+                {new Date(match.fixture.date).toLocaleString(undefined, {
+                  weekday: 'short',
+                  month: 'short',
+                  day: 'numeric',
+                  hour: '2-digit',
+                  minute: '2-digit',
+                })}
+              </p>
             )}
           </div>
+
+          <div className="flex flex-col items-center gap-4 flex-1 min-w-0">
+            <Image
+              src={match.teams.away.logo}
+              alt={match.teams.away.name}
+              width={96}
+              height={96}
+              className="w-20 h-20 md:w-28 md:h-28 object-contain drop-shadow-lg"
+            />
+            <Link href={`/team/${match.teams.away.id}`} className="font-black text-lg md:text-2xl text-white text-center hover:text-red-400 transition truncate max-w-[220px]">
+              {match.teams.away.name}
+            </Link>
+          </div>
         </div>
 
-        <div className="col-span-1 border border-gray-800/80 rounded-2xl p-5 bg-gray-900/30">
-          <h3 className="text-xs font-bold text-gray-500 uppercase tracking-widest mb-5 flex items-center gap-2">
-            <span>⏱️</span> Match Events
-          </h3>
-          <EventTimeline events={data.events} />
-        </div>
-
-        <div className="col-span-1 border border-gray-800/80 rounded-2xl p-5 bg-gray-900/30 flex flex-col">
-          <h3 className="text-xs font-bold text-gray-500 uppercase tracking-widest mb-5 flex items-center gap-2">
-            <span>📊</span> Match Stats
-          </h3>
-          {homeStats.length > 0 ? (
-           <div className="space-y-2">
-            {statTypes.map(type => (
-              <StatBar 
-                key={type} 
-                label={type === "Ball Possession" ? "Possession" : type} 
-                homeTotal={getStat(homeStats, type)} 
-                awayTotal={getStat(awayStats, type)} 
-              />
-            ))}
-           </div>
-          ) : (
-            <div className="text-gray-600 text-sm text-center py-10 italic flex-1 flex items-center justify-center border border-gray-800/50 border-dashed rounded-xl">
-              Stats will appear during the match
-            </div>
+        <div className="relative z-10 mt-8 pt-6 border-t border-white/10 flex flex-wrap justify-center gap-6 text-[10px] font-black uppercase tracking-widest text-white/45">
+          {match.fixture?.venue?.name && (
+            <span className="inline-flex items-center gap-2">
+              <MapPin className="w-3.5 h-3.5" />
+              {match.fixture.venue.name}
+              {match.fixture.venue.city ? ` · ${match.fixture.venue.city}` : ''}
+            </span>
           )}
+          <span className="inline-flex items-center gap-2">
+            <Calendar className="w-3.5 h-3.5" />
+            Round {match.fixture?.status?.round ?? '—'}
+          </span>
         </div>
       </div>
 
-      {data.injuries.length > 0 && (
-        <div className="bg-red-500/5 border border-red-500/20 rounded-3xl p-6">
-          <h3 className="text-xs font-bold text-red-500 uppercase tracking-widest mb-4 flex items-center gap-2">
-            <span>🏥</span> Match Injuries
-          </h3>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {data.injuries.map((injury: any, idx: number) => (
-              <div key={idx} className="flex items-center gap-3 bg-white/5 dark:bg-black/20 p-3 rounded-xl border border-white/10 dark:border-white/5">
-                <div className="relative">
-                  <Image src={injury.player.photo} width={40} height={40} className="w-10 h-10 rounded-full border border-gray-800" alt="" />
-                  <span className="absolute -bottom-1 -right-1 text-xs">⚠️</span>
-                </div>
-                <div>
-                  <div className="font-bold text-sm text-gray-200">{injury.player.name}</div>
-                  <div className="text-[10px] text-gray-500 uppercase font-bold flex gap-2">
-                    <span>{injury.team.name}</span>
-                    <span className="text-red-400">{injury.player.type || 'Injured'}</span>
-                  </div>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-      )}
-
-      {isNotStarted && <PredictionPanel fixtureId={id} />}
-      {!isNotStarted && ['FT', 'AET', 'PEN'].includes(match.fixture?.status?.short) && <MatchAnalysis matchData={data} />}
+      <MatchDetailTabs matchId={id} data={data} />
     </div>
   );
 }

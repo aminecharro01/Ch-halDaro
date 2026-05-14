@@ -33,16 +33,41 @@ export async function POST(request: Request) {
   }
 
   const { itemId, itemType, itemName, itemLogo } = await request.json()
-  const { data, error } = await supabase
+  const payload: Record<string, any> = {
+    user_id: user.id,
+    item_id: itemId,
+    item_type: itemType,
+  }
+
+  if (itemName) payload.item_name = itemName
+  if (itemLogo) payload.item_logo = itemLogo
+
+  let { data, error } = await supabase
     .from('favorites')
-    .upsert({ 
-      user_id: user.id, 
-      item_id: itemId, 
-      item_type: itemType,
-      item_name: itemName,
-      item_logo: itemLogo
-    })
+    .upsert(payload, { onConflict: 'user_id,item_id,item_type' })
     .select()
+
+  if (error) {
+    const message = String(error.message || '')
+    if (message.includes('item_logo')) {
+      delete payload.item_logo
+      const retry = await supabase
+        .from('favorites')
+        .upsert(payload, { onConflict: 'user_id,item_id,item_type' })
+        .select()
+      data = retry.data
+      error = retry.error
+    }
+    if (error && String(error.message || '').includes('item_name')) {
+      delete payload.item_name
+      const retry = await supabase
+        .from('favorites')
+        .upsert(payload, { onConflict: 'user_id,item_id,item_type' })
+        .select()
+      data = retry.data
+      error = retry.error
+    }
+  }
 
   if (error) {
     return NextResponse.json({ error: error.message }, { status: 500 })

@@ -10,21 +10,34 @@ webpush.setVapidDetails(
 
 export async function POST(request: NextRequest) {
   try {
-    const supabase = await createClient();
-    const { data: { user } } = await supabase.auth.getUser();
+    const body = await request.json();
+    const providedSub = body.subscription;
 
-    if (!user) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-    }
+    let subs = [];
 
-    // Get this user's subscriptions
-    const { data: subs } = await supabase
-      .from('subscriptions')
-      .select('subscription')
-      .eq('user_id', user.id);
+    if (providedSub) {
+      // Use the provided subscription
+      subs = [providedSub];
+    } else {
+      // Fallback to DB
+      const supabase = await createClient();
+      const { data: { user } } = await supabase.auth.getUser();
 
-    if (!subs || subs.length === 0) {
-      return NextResponse.json({ error: 'No subscription found for this user. Please enable notifications first.' }, { status: 404 });
+      if (!user) {
+        return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+      }
+
+      // Get this user's subscriptions
+      const { data: dbSubs } = await supabase
+        .from('subscriptions')
+        .select('subscription')
+        .eq('user_id', user.id);
+
+      if (!dbSubs || dbSubs.length === 0) {
+        return NextResponse.json({ error: 'No subscription found for this user. Please enable notifications first.' }, { status: 404 });
+      }
+
+      subs = dbSubs.map(s => s.subscription);
     }
 
     const payload = JSON.stringify({
@@ -36,7 +49,9 @@ export async function POST(request: NextRequest) {
     let sent = 0;
     for (const sub of subs) {
       try {
-        await webpush.sendNotification(sub.subscription, payload);
+        // sub is either the object from providedSub or a mapped subscription object from DB
+        // In both cases, if we reached here via the maps above, 'sub' IS the subscription object
+        await webpush.sendNotification(sub, payload);
         sent++;
       } catch (err) {
         console.error("Test push failed", err);

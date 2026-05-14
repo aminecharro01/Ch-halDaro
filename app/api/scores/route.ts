@@ -1,15 +1,17 @@
 import { NextResponse } from 'next/server';
-import { getEventsByDay } from '@/lib/thesportsdb';
+import { getEventsByDay, SCORES_TRACKED_LEAGUE_IDS } from '@/lib/thesportsdb';
 import { mapMatch } from '@/lib/api-adapter';
 
 export async function GET(request: Request) {
   try {
     const { searchParams } = new URL(request.url);
     const date = searchParams.get('date') || new Date().toISOString().split('T')[0];
-    const data = await getEventsByDay(date);
-    const eventList = Array.isArray(data) ? data : (data.events || data.livescore || []);
+    const eventList = await getEventsByDay(date);
     const matches = eventList
-      .filter((m: any) => (m.strSport || m.sport) === 'Soccer')
+      .filter((m: any) => 
+        ((m.strSport || m.sport) === 'Soccer') && 
+        SCORES_TRACKED_LEAGUE_IDS.includes(Number(m.idLeague))
+      )
       .map((m: any) => mapMatch(m));
 
     // Deduplicate by fixture ID

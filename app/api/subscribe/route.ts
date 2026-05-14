@@ -2,10 +2,10 @@ import { NextRequest, NextResponse } from 'next/server';
 
 export async function POST(request: NextRequest) {
   try {
-    const sub = await request.json();
+    const { subscription: sub, prefs } = await request.json();
 
     // Validate subscription object
-    if (!sub.endpoint || !sub.keys) {
+    if (!sub || !sub.endpoint || !sub.keys) {
       return NextResponse.json(
         { error: 'Invalid push subscription format' },
         { status: 400 }
@@ -26,6 +26,7 @@ export async function POST(request: NextRequest) {
               {
                 user_id: user.id,
                 subscription: sub,
+                prefs: prefs || { goals: true, cards: true, yellow_cards: false, penalties: true, var: true, kickoff: true }
               },
               { onConflict: 'user_id' }
             );
@@ -33,7 +34,7 @@ export async function POST(request: NextRequest) {
           if (error) {
             console.error('Supabase subscription error:', error);
             return NextResponse.json(
-              { error: 'Failed to save subscription to database' },
+              { error: `Failed to save subscription to database: ${error.message}` },
               { status: 500 }
             );
           }
@@ -108,5 +109,35 @@ export async function DELETE(request: NextRequest) {
       { error: err.message || 'Failed to unsubscribe' },
       { status: 500 }
     );
+  }
+}
+
+export async function GET() {
+  try {
+    const { createClient } = await import('@/lib/supabase/server');
+    const supabase = await createClient();
+    const { data: { user } } = await supabase.auth.getUser();
+
+    if (!user) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
+    const { data, error } = await supabase
+      .from('subscriptions')
+      .select('subscription, prefs')
+      .eq('user_id', user.id)
+      .single();
+
+    if (error && error.code !== 'PGRST116') { // PGRST116 is code for 'no rows returned'
+      throw error;
+    }
+
+    return NextResponse.json({
+      subscribed: !!data,
+      prefs: data?.prefs || { goals: true, cards: true, yellow_cards: false, penalties: true, var: true, kickoff: true }
+    });
+  } catch (err: any) {
+    console.error('Fetch subscription error:', err);
+    return NextResponse.json({ error: err.message }, { status: 500 });
   }
 }

@@ -20,14 +20,14 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
     // Fetch basic info for each league in the region
     const leagues = await Promise.all(
       leagueIds.map(async (leagueId) => {
-        const data = await fetchTheSportsDb('lookupleague.php', { id: leagueId }).catch(() => null);
-        const league = data?.leagues?.[0];
-        if (!league) return null;
+        const data = await fetchTheSportsDb(`lookup/league/${leagueId}`, {}, 3600).catch(() => null);
+        const row = Array.isArray(data) ? data[0] : null;
+        if (!row) return null;
         return {
           league: {
-            id: parseInt(league.idLeague),
-            name: league.strLeague,
-            logo: league.strBadge
+            id: parseInt(String(row.idLeague), 10),
+            name: row.strLeague,
+            logo: row.strBadge || row.strLogo || ''
           }
         };
       })

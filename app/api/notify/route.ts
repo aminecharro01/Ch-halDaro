@@ -27,32 +27,23 @@ export async function GET() {
       const matches = await getEventsByDay(today).catch(() => []);
       
       // Filter for live matches. TSDB status for live is often '1H', '2H', 'HT', or 'Live'
-      const liveMatches = matches.filter((m: any) => 
+      const liveMatches = matches.filter((m: any) =>
         ['1H', '2H', 'HT', 'LIVE', 'Live'].includes(m.strStatus)
-      );
+      ) as any[];
       
-      const { data: dbSubs } = await supabase.from('subscriptions').select('subscription, user_id');
+      const { data: dbSubs } = await supabase.from('subscriptions').select('subscription, user_id, prefs');
       
       let sent = 0;
       if (dbSubs && liveMatches.length > 0) {
         // Fetch all favorites
         const { data: allFavs } = await supabase.from('favorites').select('user_id, item_id, item_type');
         
-        // Cache for seen events in this execution to avoid duplicates across users
-        const processedEvents = new Set<string>();
-
         for (const match of liveMatches) {
-          const matchId = match.idEvent;
-          const timelineData = await getMatchTimeline(matchId).catch(() => ({ timeline: [] }));
-          const timeline = timelineData.timeline || [];
+          const matchId = String(match.idEvent ?? '');
+          if (!matchId) continue;
+          const timeline = await getMatchTimeline(matchId).catch(() => []);
 
-          // Sort by time descending to get newest first if needed, but TSDB usually returns chronological
-          // For each event in timeline
           for (const event of timeline) {
-            const eventKey = `${matchId}_${event.intTime}_${event.strTimeline}_${event.strPlayer}`;
-            
-            // In a real app, we'd check a persistent cache here. 
-            // For this demo, let's assume we notify about events in the last 5 minutes
             const eventTime = parseInt(event.intTime);
             const matchElapsed = parseInt(match.strProgress) || 0;
             const isRecent = matchElapsed - eventTime <= 5;
@@ -63,19 +54,60 @@ export async function GET() {
               const isCard = eventType.includes("card");
               const isVar = eventType.includes("var");
               const isPenalty = eventType.includes("penalty");
+              const isKickoff = eventType.includes("kick") && !isGoal && !isPenalty;
+              const isSub = eventType.includes("subst");
 
-              if (isGoal || isCard || isVar || isPenalty) {
-                const title = isGoal ? "⚽ BUT !!!" : isCard ? "🟨 CARTON !" : isVar ? "🖥️ VAR Check" : "⚠️ Pénalty !";
-                const body = `${match.strEvent}: ${event.strTimeline} - ${event.strPlayer} (${event.intTime}')`;
+              if (isGoal || isCard || isVar || isPenalty || isKickoff || isSub) {
+                let title = "⚽ BUT !!!";
+                let body = `${match.strEvent} (${event.intTime}'): ${event.strPlayer}`;
+                
+                if (isGoal) {
+                  title = "⚽ BUT !!!";
+                  if (event.strAssist) body += ` (Assist: ${event.strAssist})`;
+                } else if (isCard) {
+                  const isYellow = eventType.includes("yellow");
+                  title = isYellow ? "🟨 CARTON JAUNE" : "🟥 CARTON ROUGE !";
+                } else if (isPenalty) {
+                  title = "⚠️ PÉNALTY !";
+                } else if (isVar) {
+                  title = "🖥️ VAR Check";
+                  if (event.strTimelineDetail) body += ` - ${event.strTimelineDetail}`;
+                } else if (isSub) {
+                  title = "🔄 CHANGEMENT";
+                  body = `${match.strEvent} (${event.intTime}'): ${event.strPlayer} (${event.strTimelineDetail || 'In'})`;
+                } else if (isKickoff) {
+                  title = "⏱️ Match Started";
+                  body = `C'est parti pour ${match.strEvent} !`;
+                }
+
                 const payload = JSON.stringify({ title, body });
 
-                // Find users who favorite this match's teams or league
+                // Find users who favorite this match's teams, league, or the match itself
                 const relevantUsers = dbSubs.filter(sub => {
                   const userFavs = allFavs?.filter(f => f.user_id === sub.user_id) || [];
-                  return userFavs.some(f => 
+                  const isFavorite = userFavs.some(f => 
                     (f.item_type === 'team' && (f.item_id === match.idHomeTeam || f.item_id === match.idAwayTeam)) ||
-                    (f.item_type === 'league' && f.item_id === match.idLeague)
+                    (f.item_type === 'league' && f.item_id === match.idLeague) ||
+                    (f.item_type === 'match' && f.item_id === matchId)
                   );
+
+                  if (!isFavorite) return false;
+
+                  // Check user preferences
+                  const userPrefs = sub.prefs || { goals: true, cards: true, yellow_cards: false, penalties: true, var: true, kickoff: true };
+                  
+                  if (isGoal && !userPrefs.goals) return false;
+                  if (isPenalty && !userPrefs.penalties) return false;
+                  if (isVar && !userPrefs.var) return false;
+                  if (isKickoff && !userPrefs.kickoff) return false;
+                  
+                  if (isCard) {
+                    const isYellow = eventType.includes("yellow");
+                    if (isYellow && !userPrefs.yellow_cards) return false;
+                    if (!isYellow && !userPrefs.cards) return false; // Red card
+                  }
+
+                  return true;
                 });
 
                 for (const sub of relevantUsers) {
