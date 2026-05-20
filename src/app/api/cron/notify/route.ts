@@ -3,6 +3,7 @@ import { sportsDB } from '@/lib/api/sportsdb';
 import { getLiveMatchStates, updateMatchState, getSubscribersForMatch, deleteExpiredSubscription } from '@/lib/supabase/queries';
 import { sendPush } from '@/lib/push/webpush';
 import { sendEmail, matchAlertEmailHtml } from '@/lib/email/send';
+import { fetchAppSettings } from '@/lib/admin/queries';
 
 export async function GET(req: Request) {
   try {
@@ -10,6 +11,11 @@ export async function GET(req: Request) {
     const authHeader = req.headers.get('authorization');
     if (process.env.CRON_SECRET && authHeader !== `Bearer ${process.env.CRON_SECRET}`) {
       return new Response('Unauthorized', { status: 401 });
+    }
+
+    const settings = await fetchAppSettings();
+    if (!settings.notifications_enabled) {
+      return NextResponse.json({ success: true, disabled: true, reason: 'notifications disabled by admin' });
     }
 
     console.log('[Cron] Checking for live match updates...');
@@ -67,7 +73,7 @@ export async function GET(req: Request) {
           }
         }
 
-        const matchUrl = `/match/${matchId}`;
+        const homeUrl = '/';
 
         // 5. Send push / email to relevant subscribers
         const subscribers = await getSubscribersForMatch(details);
@@ -82,7 +88,7 @@ export async function GET(req: Request) {
           const success = await sendPush(JSON.parse(sub.subscription_json), {
             title,
             body,
-            url: matchUrl,
+            url: homeUrl,
           });
           
           if (!success) {
@@ -96,7 +102,7 @@ export async function GET(req: Request) {
             await sendEmail({
               to: emailTo,
               subject: title,
-              html: matchAlertEmailHtml(title, body, matchUrl),
+              html: matchAlertEmailHtml(title, body, homeUrl),
             });
           }
         }

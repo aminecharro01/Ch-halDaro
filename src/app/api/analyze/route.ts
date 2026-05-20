@@ -55,15 +55,21 @@ Write the report now:`;
     return NextResponse.json({ analysis: text, source: 'generated' });
   } catch (error: unknown) {
     const message = error instanceof Error ? error.message : 'Analysis failed';
-    console.error('API Analyze Error:', message);
 
     if (isQuotaExceeded(error)) {
+      if (process.env.NODE_ENV === 'development') {
+        console.warn('[analyze] Gemini quota exceeded — using rule-based fallback');
+      }
       return NextResponse.json({
         analysis: ruleBasedAnalysis(homeTeam, awayTeam, score),
         source: 'fallback',
       });
     }
 
-    return NextResponse.json({ error: message, analysis: null }, { status: 200 });
+    console.error('[analyze]', message);
+    return NextResponse.json({
+      analysis: ruleBasedAnalysis(homeTeam, awayTeam, score),
+      source: 'fallback',
+    });
   }
 }

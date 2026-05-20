@@ -36,7 +36,7 @@ export async function POST(request: NextRequest) {
       data: { user },
     } = await supabase.auth.getUser();
 
-    let userEmail: string | null = user?.email ?? null;
+    const userEmail: string | null = user?.email ?? null;
 
     let subs: { subscription_json?: string }[] = [];
 
@@ -84,7 +84,7 @@ export async function POST(request: NextRequest) {
         const ok = await sendPush(sub, {
           title: `[Test] ${alert.title}`,
           body: alert.body,
-          url: '/alerts',
+          url: '/',
           tag: `test-${alert.key}-${Date.now()}`,
         });
         if (ok) pushOk = true;
@@ -95,7 +95,7 @@ export async function POST(request: NextRequest) {
         emailOk = await sendEmail({
           to: userEmail,
           subject: `[Test] ${alert.title}`,
-          html: matchAlertEmailHtml(alert.title, alert.body, '/alerts'),
+          html: matchAlertEmailHtml(alert.title, alert.body, '/'),
         });
         if (emailOk) emailsSent++;
       }

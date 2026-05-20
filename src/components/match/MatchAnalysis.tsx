@@ -1,6 +1,7 @@
 "use client";
 import { useEffect, useState } from 'react';
 import { BarChart3 } from 'lucide-react';
+import { LoadingSkeleton } from '@/components/ui/PageLoader';
 import { matchVisitHeaders, hasVisitedMatch } from '@/lib/match-visit-tracker';
 
 type MatchBundle = {
@@ -88,10 +89,10 @@ export function MatchAnalysis({ matchId, matchData }: { matchId: string; matchDa
         <BarChart3 className="w-5 h-5 text-indigo-400" /> Match Insights
       </h3>
       {loading ? (
-        <div className="space-y-3 animate-pulse">
-          <div className="h-3 bg-indigo-900/50 rounded w-full" />
-          <div className="h-3 bg-indigo-900/50 rounded w-[90%]" />
-          <div className="h-3 bg-indigo-900/50 rounded w-[80%]" />
+        <div className="space-y-3">
+          <LoadingSkeleton className="h-3 w-full" />
+          <LoadingSkeleton className="h-3 w-[90%]" />
+          <LoadingSkeleton className="h-3 w-[80%]" />
         </div>
       ) : analysis ? (
         <div className="text-gray-300 text-sm leading-relaxed whitespace-pre-wrap">{analysis}</div>

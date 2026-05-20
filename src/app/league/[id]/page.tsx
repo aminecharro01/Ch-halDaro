@@ -7,6 +7,7 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { FavoriteButton } from '@/components/ui/FavoriteButton';
 import { ExpandableDescription } from '@/components/ui/ExpandableDescription';
+import { PageLoader } from '@/components/ui/PageLoader';
 import { 
   Trophy, 
   Users, 
@@ -33,15 +34,7 @@ export default function LeaguePage({ params }: { params: Promise<{ id: string }>
   const seasons: string[] = data?.seasons?.length ? data.seasons : [];
   const activeSeason = season || data?.league?.season || pickCurrentSeason(seasons);
 
-  if (isLoading) return (
-    <div className="max-w-7xl mx-auto p-4 space-y-8 animate-pulse">
-      <div className="h-64 bg-gray-900/50 rounded-[2.5rem] border border-white/5"></div>
-      <div className="grid lg:grid-cols-3 gap-8">
-        <div className="lg:col-span-2 h-96 bg-gray-900/50 rounded-[2rem] border border-white/5"></div>
-        <div className="h-96 bg-gray-900/50 rounded-[2rem] border border-white/5"></div>
-      </div>
-    </div>
-  );
+  if (isLoading) return <PageLoader context="league" />;
   
   if (error || !data) return <div className="text-red-500 py-20 text-center font-bold">Error loading league data.</div>;
 

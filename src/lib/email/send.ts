@@ -42,6 +42,6 @@ export function matchAlertEmailHtml(title: string, body: string, url: string) {
   return `<div style="font-family:sans-serif;max-width:480px;margin:0 auto;padding:24px;background:#0f172a;color:#f8fafc;border-radius:12px">
 <h1 style="color:#22c55e;font-size:20px">${title}</h1>
 <p style="font-size:16px;line-height:1.5">${body}</p>
-<a href="${link}" style="display:inline-block;margin-top:16px;padding:12px 24px;background:#22c55e;color:#fff;text-decoration:none;border-radius:8px;font-weight:bold">Voir le match</a>
+<a href="${link}" style="display:inline-block;margin-top:16px;padding:12px 24px;background:#22c55e;color:#fff;text-decoration:none;border-radius:8px;font-weight:bold">Open live scores</a>
 </div>`;
 }

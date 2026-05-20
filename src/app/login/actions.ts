@@ -3,6 +3,8 @@
 import { revalidatePath } from 'next/cache'
 import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
+import { syncAdminRole } from '@/lib/admin/bootstrap-role'
+import { roleForEmail } from '@/lib/admin/emails'
 
 export async function login(formData: FormData) {
   const supabase = await createClient()
@@ -21,6 +23,20 @@ export async function login(formData: FormData) {
 
   if (error) {
     redirect('/login?error=' + encodeURIComponent(error.message))
+  }
+
+  const { data: { user } } = await supabase.auth.getUser()
+  if (user) {
+    await syncAdminRole(user.id, user.email)
+    const { data: profile } = await supabase
+      .from('profiles')
+      .select('is_banned')
+      .eq('id', user.id)
+      .maybeSingle()
+    if (profile?.is_banned) {
+      await supabase.auth.signOut()
+      redirect('/login?error=Your account has been banned')
+    }
   }
 
   const next = (formData.get('next') as string) || '/'
@@ -61,6 +77,7 @@ export async function signup(formData: FormData) {
   }
 
   if (authData.user) {
+    const adminRole = roleForEmail(email)
     const { error: profileError } = await supabase
       .from('profiles')
       .insert({
@@ -68,6 +85,7 @@ export async function signup(formData: FormData) {
         first_name: firstName,
         last_name: lastName,
         birthdate: birthdate,
+        role: adminRole,
       })
 
     if (profileError) {

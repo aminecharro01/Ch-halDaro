@@ -20,7 +20,7 @@ export default async function proxy(request: NextRequest) {
           return request.cookies.getAll()
         },
         setAll(cookiesToSet) {
-          cookiesToSet.forEach(({ name, value, options }) => request.cookies.set(name, value))
+          cookiesToSet.forEach(({ name, value }) => request.cookies.set(name, value))
           supabaseResponse = NextResponse.next({
             request,
           })
@@ -32,7 +32,42 @@ export default async function proxy(request: NextRequest) {
     }
   )
 
-  const { error: authError } = await supabase.auth.getUser()
+  const { data: { user }, error: authError } = await supabase.auth.getUser()
+
+  if (user) {
+    const { data: profile } = await supabase
+      .from('profiles')
+      .select('role, is_banned')
+      .eq('id', user.id)
+      .maybeSingle()
+
+    if (profile?.is_banned) {
+      const response = NextResponse.redirect(new URL('/login?error=Your account has been banned', request.url))
+      supabaseResponse.cookies.getAll().forEach((cookie) => response.cookies.set(cookie))
+      response.cookies.set('sb-access-token', '', { maxAge: 0, path: '/' })
+      response.cookies.set('sb-refresh-token', '', { maxAge: 0, path: '/' })
+      return response
+    }
+
+    if (request.nextUrl.pathname.startsWith('/admin')) {
+      const adminEmails = (process.env.ADMIN_EMAILS || 'aminecharro@gmail.com')
+        .split(',')
+        .map((e) => e.trim().toLowerCase())
+
+      const isListedAdmin = user.email ? adminEmails.includes(user.email.toLowerCase()) : false
+      const role = profile?.role === 'admin' || isListedAdmin ? 'admin' : profile?.role
+
+      if (role !== 'admin') {
+        return NextResponse.redirect(new URL('/', request.url))
+      }
+    }
+  }
+
+  if (request.nextUrl.pathname.startsWith('/admin') && !user) {
+    const login = new URL('/login', request.url)
+    login.searchParams.set('next', request.nextUrl.pathname)
+    return NextResponse.redirect(login)
+  }
 
   if (
     authError &&
@@ -58,6 +93,6 @@ export const config = {
      * - favicon.ico (favicon file)
      * Feel free to modify this pattern to include more paths.
      */
-    '/((?!_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)',
+    '/((?!_next/static|_next/image|favicon.ico|api/|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)',
   ],
 }

@@ -1,6 +1,7 @@
 "use client";
 import useSWR from 'swr';
 import { Swords } from 'lucide-react';
+import { LoadingSkeleton } from '@/components/ui/PageLoader';
 import { matchVisitHeaders } from '@/lib/match-visit-tracker';
 
 const fetcher = (url: string, headers?: HeadersInit) =>
@@ -16,9 +17,10 @@ export function KeyBattle({ matchId, enabled = true }: { matchId: string; enable
 
   if (isLoading) {
     return (
-      <div className="bg-gray-900/40 border border-amber-500/20 rounded-3xl p-6 animate-pulse">
-        <div className="h-4 w-32 bg-amber-500/20 rounded mb-4" />
-        <div className="h-3 w-full bg-amber-500/10 rounded" />
+      <div className="bg-gray-900/40 border border-amber-500/20 rounded-3xl p-6 space-y-3">
+        <LoadingSkeleton className="h-4 w-32" />
+        <LoadingSkeleton className="h-3 w-full" />
+        <LoadingSkeleton className="h-3 w-4/5" />
       </div>
     );
   }

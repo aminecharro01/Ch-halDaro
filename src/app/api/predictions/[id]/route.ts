@@ -1,31 +1,38 @@
-import { GoogleGenerativeAI } from "@google/generative-ai";
+import { GoogleGenerativeAI } from '@google/generative-ai';
 import { NextResponse } from 'next/server';
 import { sportsDB } from '@/lib/api/sportsdb';
+import { isQuotaExceeded, ruleBasedPrediction } from '@/lib/content-fallback';
 
-export async function GET(request: Request, { params }: { params: Promise<{ id: string }> }) {
+const PREDICTION_FORM = {
+  home: { league: { form: 'WDLWD' } },
+  away: { league: { form: 'LDWWL' } },
+};
+
+export async function GET(_request: Request, { params }: { params: Promise<{ id: string }> }) {
+  const { id } = await params;
+  let home = 'Home';
+  let away = 'Away';
+
   try {
-    const { id } = await params;
-    const apiKey = process.env.GEMINI_API_KEY;
-
-    if (!apiKey) {
-      return NextResponse.json([{
-        predictions: {
-          percent: { home: "33%", draw: "34%", away: "33%" },
-          advice: "Analysis unavailable."
-        }
-      }]);
-    }
-
     const match = await sportsDB.getMatchDetails(id);
 
     if (!match) {
-      return NextResponse.json({ error: "Match not found" }, { status: 404 });
+      return NextResponse.json({ error: 'Match not found' }, { status: 404 });
+    }
+
+    home = match.teams.home.name;
+    away = match.teams.away.name;
+    const fallback = ruleBasedPrediction(home, away);
+
+    const apiKey = process.env.GEMINI_API_KEY;
+    if (!apiKey) {
+      return NextResponse.json([{ predictions: fallback, teams: PREDICTION_FORM, source: 'fallback' }]);
     }
 
     const client = new GoogleGenerativeAI(apiKey);
-    const model = client.getGenerativeModel({ model: "gemini-2.0-flash" });
+    const model = client.getGenerativeModel({ model: 'gemini-2.0-flash' });
 
-    const prompt = `Agis en tant qu'expert en paris sportifs. Analyse le match: ${match.teams.home.name} vs ${match.teams.away.name} en ${match.league.name}.
+    const prompt = `Agis en tant qu'expert en paris sportifs. Analyse le match: ${home} vs ${away} en ${match.league.name}.
     Donne des probabilités de victoire (Home, Draw, Away) totalisant 100%.
     Donne un conseil court (max 20 mots) en français.
     Réponds EXCLUSIVEMENT au format JSON:
@@ -37,31 +44,29 @@ export async function GET(request: Request, { params }: { params: Promise<{ id: 
     }`;
 
     const result = await model.generateContent(prompt);
-    const response = await result.response;
-    const text = response.text().replace(/```json|```/g, '');
+    const text = result.response.text().replace(/```json|```/g, '');
     const json = JSON.parse(text);
 
     return NextResponse.json([{
       predictions: {
         percent: { home: json.home, draw: json.draw, away: json.away },
-        advice: json.advice
+        advice: json.advice,
       },
-      teams: {
-        home: { league: { form: 'WDLWD' } },
-        away: { league: { form: 'LDWWL' } }
-      }
+      teams: PREDICTION_FORM,
+      source: 'generated',
     }]);
-  } catch (error: any) {
-    console.error("[predictions]", error);
-    return NextResponse.json([{
-      predictions: {
-        percent: { home: "50%", draw: "25%", away: "25%" },
-        advice: "Home team looks stronger today."
-      },
-      teams: {
-        home: { league: { form: 'WDLWD' } },
-        away: { league: { form: 'LDWWL' } }
+  } catch (error: unknown) {
+    const fallback = ruleBasedPrediction(home, away);
+
+    if (isQuotaExceeded(error)) {
+      if (process.env.NODE_ENV === 'development') {
+        console.warn('[predictions] Gemini quota exceeded — using rule-based fallback');
       }
-    }]);
+    } else {
+      const message = error instanceof Error ? error.message : 'Prediction failed';
+      console.error('[predictions]', message);
+    }
+
+    return NextResponse.json([{ predictions: fallback, teams: PREDICTION_FORM, source: 'fallback' }]);
   }
 }

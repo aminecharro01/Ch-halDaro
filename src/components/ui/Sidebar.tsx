@@ -1,7 +1,7 @@
 "use client";
 import Link from 'next/link';
 import { Trophy, Globe, Medal } from 'lucide-react';
-import { LeagueLogo } from '@/components/ui/LeagueLogo';
+import { LEAGUE_LOGOS } from '@/lib/league-logos';
 
 export function Sidebar() {
   const topTeams = [
@@ -39,7 +39,7 @@ export function Sidebar() {
             <li key={team.id}>
               <Link href={`/team/${team.id}`} className="flex items-center gap-3 group p-1.5 rounded-xl hover:bg-white/5 transition-all">
                 <span className="text-[10px] font-bold text-gray-600 w-3">{idx + 1}</span>
-                <img src={team.img} className="w-6 h-6 object-contain group-hover:scale-110 transition-transform" alt={team.name} />
+                <img src={team.img} className="w-6 h-6 object-contain group-hover:scale-110 transition-transform" alt={team.name} loading="lazy" />
                 <span className="text-xs font-bold text-gray-400 group-hover:text-white transition-colors truncate">{team.name}</span>
               </Link>
             </li>
@@ -52,14 +52,26 @@ export function Sidebar() {
           <Trophy className="w-4 h-4 text-indigo-500" /> Competitions
         </h3>
         <ul className="space-y-3">
-          {topCompetitions.map((comp) => (
-            <li key={comp.id}>
-              <Link href={`/league/${comp.id}`} className="flex items-center gap-3 group p-1.5 rounded-xl hover:bg-white/5 transition-all">
-                <LeagueLogo leagueId={comp.id} name={comp.name} className="w-5 h-5 object-contain opacity-70 group-hover:opacity-100 transition-opacity" />
-                <span className="text-xs font-bold text-gray-400 group-hover:text-white transition-colors truncate">{comp.name}</span>
-              </Link>
-            </li>
-          ))}
+          {topCompetitions.map((comp) => {
+            const logo = LEAGUE_LOGOS[comp.id];
+            return (
+              <li key={comp.id}>
+                <Link href={`/league/${comp.id}`} className="flex items-center gap-3 group p-1.5 rounded-xl hover:bg-white/5 transition-all">
+                  {logo ? (
+                    <img
+                      src={logo}
+                      alt=""
+                      className="w-5 h-5 object-contain opacity-70 group-hover:opacity-100 transition-opacity"
+                      loading="lazy"
+                    />
+                  ) : (
+                    <Trophy className="w-5 h-5 text-indigo-400 opacity-70" aria-hidden />
+                  )}
+                  <span className="text-xs font-bold text-gray-400 group-hover:text-white transition-colors truncate">{comp.name}</span>
+                </Link>
+              </li>
+            );
+          })}
         </ul>
       </div>
 

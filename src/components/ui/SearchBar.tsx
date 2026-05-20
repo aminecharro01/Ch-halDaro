@@ -2,7 +2,8 @@
 
 import { useState, useEffect, useRef, useCallback } from 'react';
 import Link from 'next/link';
-import { Search, Loader2 } from 'lucide-react';
+import { Search } from 'lucide-react';
+import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
 
 type SearchResult = { id: string; name: string; logo?: string; photo?: string; type: string };
 
@@ -73,7 +74,7 @@ export function SearchBar() {
   return (
     <div ref={ref} className="relative w-full max-w-[14rem] sm:max-w-xs md:max-w-sm lg:w-64">
       {loading ? (
-        <Loader2 className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-green-500 animate-spin" />
+        <LoadingSpinner size="sm" className="absolute left-3 top-1/2 -translate-y-1/2" />
       ) : (
         <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500" />
       )}

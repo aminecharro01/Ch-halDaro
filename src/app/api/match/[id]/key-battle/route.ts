@@ -58,7 +58,14 @@ export async function GET(request: Request, { params }: { params: Promise<{ id: 
 
     return NextResponse.json({ analysis: text, source: 'generated' });
   } catch (error: unknown) {
-    console.error('[API KeyBattle] Error:', error);
+    if (isQuotaExceeded(error)) {
+      if (process.env.NODE_ENV === 'development') {
+        console.warn('[key-battle] Gemini quota exceeded — using rule-based fallback');
+      }
+    } else {
+      const message = error instanceof Error ? error.message : 'Key battle failed';
+      console.error('[key-battle]', message);
+    }
 
     if (isQuotaExceeded(error)) {
       try {
