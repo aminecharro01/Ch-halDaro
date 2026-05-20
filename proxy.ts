@@ -32,8 +32,19 @@ export default async function proxy(request: NextRequest) {
     }
   )
 
-  // refreshing the auth token
-  await supabase.auth.getUser()
+  const { error: authError } = await supabase.auth.getUser()
+
+  if (
+    authError &&
+    (authError.message?.includes('refresh_token') ||
+      (authError as { code?: string }).code === 'refresh_token_not_found')
+  ) {
+    request.cookies.getAll().forEach(({ name }) => {
+      if (name.startsWith('sb-')) {
+        supabaseResponse.cookies.set(name, '', { maxAge: 0, path: '/' })
+      }
+    })
+  }
 
   return supabaseResponse
 }
