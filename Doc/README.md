@@ -1,51 +1,57 @@
-# Ch'hal Daro — Documentation
+# Documentation — Ch'hal Daro
 
-Application web de scores football (Next.js 16, React 19, TheSportsDB, Supabase).
+Index de la documentation du projet **v0.1.0** (branche [`v0.1`](https://github.com/aminecharro01/Ch-halDaro/tree/v0.1)).
 
-| Document | Description |
-|----------|-------------|
-| [RAPPORT_ACADEMIQUE.md](./RAPPORT_ACADEMIQUE.md) | Rapport académique complet (v0.1) |
-| [RAPPORT_PROJET.md](./RAPPORT_PROJET.md) | Rapport projet synthétique |
-| [AUDIT_AVANT_IMPLEMENTATION.md](./AUDIT_AVANT_IMPLEMENTATION.md) | Audit technique |
-| [SPRINTS_PROGRESS.md](./SPRINTS_PROGRESS.md) | Suivi des sprints |
-| [AGENTS.md](./AGENTS.md) | Règles Next.js pour les agents |
+Pour l’installation, les variables d’environnement et le déploiement rapide, voir le [README principal](../README.md) à la racine du dépôt.
 
-## Démarrage local
+---
+
+## Documents
+
+| Document | Public | Description |
+|----------|--------|-------------|
+| [RAPPORT_ACADEMIQUE.md](./RAPPORT_ACADEMIQUE.md) | Académique | Rapport complet : contexte, architecture, UML, API, sécurité, **déploiement Vercel (§16)** |
+| [RAPPORT_PROJET.md](./RAPPORT_PROJET.md) | Synthèse | Présentation projet et diagrammes |
+| [SPRINTS_PROGRESS.md](./SPRINTS_PROGRESS.md) | Suivi | Checklist des sprints et correctifs |
+| [AGENTS.md](./AGENTS.md) | Développement | Règles Next.js 16 pour Cursor / agents |
+
+---
+
+## Référence rapide
+
+### Installation locale
 
 ```bash
 npm install
+cp ../.env.example ../.env.local
 npm run dev
 ```
 
-## Variables d'environnement (`.env.local`)
+### Variables d'environnement
 
-| Variable | Obligatoire | Usage |
-|----------|-------------|--------|
-| `THESPORTSDB_KEY` | Oui | Données sportives |
-| `NEXT_PUBLIC_SUPABASE_URL` | Oui | Auth + base |
-| `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Oui | Auth + base |
-| `GEMINI_API_KEY` | Non | Résumés, analyses, prédictions |
-| `NEXT_PUBLIC_SITE_URL` | Prod | Callbacks auth |
-| `NEXT_PUBLIC_VAPID_PUBLIC_KEY` | Push | Notifications |
-| `VAPID_PRIVATE_KEY` | Push | Notifications |
-| `VAPID_EMAIL` | Push | `mailto:…` |
-| `RESEND_API_KEY` | E-mail | Alertes e-mail |
-| `EMAIL_FROM` | E-mail | Expéditeur Resend |
-| `CRON_SECRET` | Recommandé | Sécurise `/api/cron/notify` |
+| Variable | Requis |
+|----------|:------:|
+| `THESPORTSDB_KEY` | ✅ |
+| `NEXT_PUBLIC_SUPABASE_URL` | ✅ |
+| `NEXT_PUBLIC_SUPABASE_ANON_KEY` | ✅ |
+| `GEMINI_API_KEY` | optionnel |
+| `NEXT_PUBLIC_SITE_URL` | prod |
+| `NEXT_PUBLIC_VAPID_PUBLIC_KEY` / `VAPID_PRIVATE_KEY` / `VAPID_EMAIL` | push |
+| `RESEND_API_KEY` / `EMAIL_FROM` | e-mail |
+| `CRON_SECRET` | recommandé |
 
 ```bash
-npm run vapid   # génère NEXT_PUBLIC_VAPID_PUBLIC_KEY + VAPID_PRIVATE_KEY
+npm run vapid   # depuis la racine du projet
 ```
 
-## Déploiement Vercel (branche `v0.1`)
+### Déploiement Vercel
 
-1. Importer `https://github.com/aminecharro01/Ch-halDaro` sur Vercel.
-2. **Production Branch** = `v0.1`.
-3. Coller les variables ci-dessus dans **Settings → Environment Variables**.
-4. Après le premier déploiement, définir `NEXT_PUBLIC_SITE_URL` sur l’URL Vercel et redéployer.
-5. Configurer les redirect URLs Supabase avec la même URL.
+1. Branche de production : **`v0.1`**
+2. Variables : identiques au [README](../README.md#variables-denvironnement)
+3. Après deploy : `NEXT_PUBLIC_SITE_URL` + URLs Supabase Auth
+4. Détail : [RAPPORT_ACADEMIQUE.md §16.3–16.4](./RAPPORT_ACADEMIQUE.md)
 
-Voir la section **16.3–16.4** du [rapport académique](./RAPPORT_ACADEMIQUE.md) pour le détail.
+---
 
 ## Licence
 
