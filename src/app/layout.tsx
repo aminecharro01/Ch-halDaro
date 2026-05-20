@@ -18,10 +18,6 @@ export const metadata: Metadata = {
   title: "Ch'hal Daro - Football Live Score",
   description: "Live football scores, predictions, and Match insights.",
   manifest: "/manifest.json",
-  icons: {
-    icon: "/logo.png",
-    apple: "/logo.png",
-  }
 };
 
 export default async function RootLayout({

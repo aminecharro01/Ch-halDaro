@@ -1,5 +1,6 @@
 import { sportsDB } from '@/lib/api/sportsdb';
 import { normalizeMatch } from '@/lib/api/normalizers';
+import { filterCurrentSeasonMatches } from '@/lib/season';
 import { NextResponse } from 'next/server';
 
 export async function GET(request: Request) {
@@ -13,7 +14,7 @@ export async function GET(request: Request) {
   try {
     const data = await sportsDB.getTeamFixtures(id);
     const eventList = Array.isArray(data) ? data : [];
-    const matches = eventList.map((e) => normalizeMatch(e));
+    const matches = filterCurrentSeasonMatches(eventList.map((e) => normalizeMatch(e)));
     return NextResponse.json(matches);
   } catch (error: unknown) {
     const message = error instanceof Error ? error.message : 'Failed to load fixtures';

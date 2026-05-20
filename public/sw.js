@@ -2,8 +2,8 @@ self.addEventListener('push', (event) => {
   const data = event.data?.json() ?? {};
   const options = {
     body: data.body || 'New update from Ch\'hal Daro!',
-    icon: '/icon.png',
-    badge: '/icon.png',
+    icon: '/logo.webp',
+    badge: '/logo.webp',
     data: { url: data.url ?? '/' },
     vibrate: [200, 100, 200],
     requireInteraction: false,

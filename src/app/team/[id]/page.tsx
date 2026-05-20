@@ -14,18 +14,20 @@ export default function TeamPage({ params }: { params: Promise<{ id: string }> }
   const { id } = use(params);
 
   const { data: teamData, error: teamError } = useSWR(`/api/match/team-info?id=${id}`, fetcher);
-  const { data: matchesData, error: matchesError } = useSWR(`/api/match/team-fixtures?id=${id}`, fetcher);
+  const { data: resultsData, error: resultsError } = useSWR(`/api/match/team-results?id=${id}`, fetcher);
   const { data: squadData, error: squadError } = useSWR(`/api/match/team-squad?id=${id}`, fetcher);
 
   const team = teamData?.[0]?.team;
-  const fixtures = matchesData || [];
+  const recentResults = Array.isArray(resultsData) ? resultsData : [];
   const squad = squadData?.[0]?.players || [];
 
-  // Fetch league info for standings
-  const { data: leagueData } = useSWR(team?.leagueId ? `/api/league/${team.leagueId}` : null, fetcher);
+  const { data: leagueData } = useSWR(
+    team?.leagueId ? `/api/league/${team.leagueId}?season=2025-2026` : null,
+    fetcher
+  );
   const teamStanding = leagueData?.standings?.find((s: any) => s.team.id === parseInt(id));
 
-  if (teamError || matchesError || squadError) return <div className="text-center p-20 text-red-500 font-bold">Failed to load team data</div>;
+  if (teamError || resultsError || squadError) return <div className="text-center p-20 text-red-500 font-bold">Failed to load team data</div>;
   if (!teamData || !squadData || !team) return (
     <div className="max-w-6xl mx-auto p-4 space-y-8 animate-pulse">
       <div className="h-64 bg-gray-900/50 rounded-3xl border border-gray-800"></div>
@@ -138,7 +140,10 @@ export default function TeamPage({ params }: { params: Promise<{ id: string }> }
               <Activity className="w-6 h-6 text-green-500" /> RECENT RESULTS
             </h3>
             <div className="grid gap-4">
-              {fixtures.slice(0, 5).map((f: any) => (
+              {recentResults.length === 0 ? (
+                <p className="text-sm text-gray-500 text-center py-8">No finished matches for 2025-2026 yet.</p>
+              ) : (
+                recentResults.slice(0, 5).map((f: any) => (
                 <div key={f.fixture.id} className="group bg-gray-900/30 backdrop-blur border border-white/5 rounded-[1.5rem] p-5 flex items-center justify-between hover:bg-gray-800/40 hover:border-white/10 transition-all duration-300">
                   <div className="flex items-center gap-4 flex-1">
                     <img src={f.teams.home.logo} className="w-8 h-8 object-contain" alt="" />
@@ -161,7 +166,8 @@ export default function TeamPage({ params }: { params: Promise<{ id: string }> }
                     <img src={f.teams.away.logo} className="w-8 h-8 object-contain" alt="" />
                   </div>
                 </div>
-              ))}
+              ))
+              )}
             </div>
           </div>
 
