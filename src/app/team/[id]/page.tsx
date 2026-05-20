@@ -6,6 +6,7 @@ import { ArrowLeft, Trophy, Users, MapPin, Calendar, Activity, Globe, Info, Shir
 import { FavoriteButton } from '@/components/ui/FavoriteButton';
 import { FormGuide } from '@/components/team/FormGuide';
 import { ExpandableDescription } from '@/components/ui/ExpandableDescription';
+import { PageLoader } from '@/components/ui/PageLoader';
 import useSWR from 'swr';
 
 const fetcher = (url: string) => fetch(url).then(res => res.json());
@@ -28,15 +29,7 @@ export default function TeamPage({ params }: { params: Promise<{ id: string }> }
   const teamStanding = leagueData?.standings?.find((s: any) => s.team.id === parseInt(id));
 
   if (teamError || resultsError || squadError) return <div className="text-center p-20 text-red-500 font-bold">Failed to load team data</div>;
-  if (!teamData || !squadData || !team) return (
-    <div className="max-w-6xl mx-auto p-4 space-y-8 animate-pulse">
-      <div className="h-64 bg-gray-900/50 rounded-3xl border border-gray-800"></div>
-      <div className="grid md:grid-cols-3 gap-8">
-        <div className="md:col-span-2 h-96 bg-gray-900/50 rounded-3xl border border-gray-800"></div>
-        <div className="h-96 bg-gray-900/50 rounded-3xl border border-gray-800"></div>
-      </div>
-    </div>
-  );
+  if (!teamData || !squadData || !team) return <PageLoader context="team" />;
 
   return (
     <div className="animate-fade-up max-w-7xl mx-auto p-4 space-y-8 pb-20">

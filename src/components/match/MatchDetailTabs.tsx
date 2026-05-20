@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import useSWR from 'swr';
 import Link from 'next/link';
 import { EventTimeline } from '@/components/match/EventTimeline';
@@ -10,6 +10,8 @@ import { MatchAnalysis } from '@/components/match/MatchAnalysis';
 import { SquadLineupList } from '@/components/match/SquadLineupList';
 import { getMatchStatusDisplay } from '@/lib/match-status';
 import { KeyBattle } from '@/components/match/KeyBattle';
+import { LoadingDots } from '@/components/ui/LoadingSpinner';
+import { pickLoadingMessage } from '@/lib/loading-messages';
 import { hasVisitedMatch, matchVisitHeaders } from '@/lib/match-visit-tracker';
 import {
   LayoutGrid,
@@ -59,6 +61,14 @@ export function MatchDetailTabs({ matchId, data }: { matchId: string; data: Matc
     tab === 'summary' && visited ? `/api/match/${matchId}/summary` : null,
     (url: string) => fetcher(url, { headers: matchVisitHeaders(matchId) })
   );
+
+  const [summaryMessage, setSummaryMessage] = useState('');
+
+  useEffect(() => {
+    if (summaryLoading) {
+      setSummaryMessage(pickLoadingMessage('summary'));
+    }
+  }, [summaryLoading, matchId]);
 
   const match = data.fixture;
   const matchStatus = match ? getMatchStatusDisplay(match) : null;
@@ -203,7 +213,11 @@ export function MatchDetailTabs({ matchId, data }: { matchId: string; data: Matc
                 {!visited
                   ? 'Ouvrez cette page pour afficher le résumé du match.'
                   : summaryLoading
-                    ? 'Loading…'
+                    ? (
+                      <span className="inline-flex items-center gap-2 text-gray-500 italic">
+                        {summaryMessage} <LoadingDots />
+                      </span>
+                    )
                     : summaryRes?.summary || 'Summary unavailable.'}
               </p>
             </div>

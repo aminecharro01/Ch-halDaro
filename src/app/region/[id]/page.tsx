@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { ArrowLeft, Globe, ChevronRight } from 'lucide-react';
 import useSWR from 'swr';
 import Image from 'next/image';
+import { PageLoader } from '@/components/ui/PageLoader';
 
 const fetcher = (url: string) => fetch(url).then(res => res.json());
 
@@ -12,7 +13,7 @@ export default function RegionPage({ params }: { params: Promise<{ id: string }>
   const { id } = use(params);
   const { data, error, isLoading } = useSWR(`/api/region/${id}`, fetcher);
 
-  if (isLoading) return <div className="animate-pulse h-64 bg-gray-900/50 rounded-3xl p-12"></div>;
+  if (isLoading) return <PageLoader context="region" compact />;
   if (error || !data) return <div className="text-red-500">Error loading region data.</div>;
 
   const leagues = data.leagues || [];

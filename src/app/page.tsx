@@ -6,6 +6,7 @@ import { MatchCard } from '@/components/match/MatchCard';
 import { LiveBadge } from '@/components/match/LiveBadge';
 import { isMatchLive } from '@/lib/match-status';
 import { Sidebar } from '@/components/ui/Sidebar';
+import { PageLoader } from '@/components/ui/PageLoader';
 import { CircleOff } from 'lucide-react';
 
 const fetcher = (url: string) => fetch(url).then(res => res.json());
@@ -111,11 +112,7 @@ export default function Home() {
         </div>
 
         {isLoading ? (
-          <div className="space-y-4">
-            {[1, 2, 3].map(i => (
-              <div key={i} className="h-32 bg-gray-900/20 backdrop-blur-sm rounded-2xl animate-pulse"></div>
-            ))}
-          </div>
+          <PageLoader context="scores" compact />
         ) : apiError ? (
           <div className="text-red-500 font-bold text-center py-10 bg-red-950/20 backdrop-blur-md rounded-2xl border border-red-900/50">
             Error: {apiError}

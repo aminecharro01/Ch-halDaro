@@ -58,7 +58,14 @@ export async function GET(request: Request, { params }: { params: Promise<{ id: 
 
     return NextResponse.json({ summary: text, source: 'generated' });
   } catch (error: unknown) {
-    console.error('[API Summary]', error);
+    if (isQuotaExceeded(error)) {
+      if (process.env.NODE_ENV === 'development') {
+        console.warn('[summary] Gemini quota exceeded — using rule-based fallback');
+      }
+    } else {
+      const message = error instanceof Error ? error.message : 'Summary failed';
+      console.error('[summary]', message);
+    }
 
     if (isQuotaExceeded(error)) {
       try {

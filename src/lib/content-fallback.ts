@@ -36,3 +36,10 @@ export function ruleBasedKeyBattle(home: string, away: string) {
 export function ruleBasedAnalysis(home: string, away: string, score: string) {
   return `${home} et ${away} se sont affrontés pour un score final de ${score}. Le match a offert des phases distinctes où la possession et les occasions ont fait pencher la balance.`;
 }
+
+export function ruleBasedPrediction(home: string, away: string) {
+  return {
+    percent: { home: '40%', draw: '30%', away: '30%' },
+    advice: `${home} vs ${away} — match serré, l'avantage du terrain pourrait faire la différence.`,
+  };
+}

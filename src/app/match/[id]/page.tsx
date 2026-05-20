@@ -6,6 +6,7 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { MapPin, Calendar, Clock, RefreshCw } from 'lucide-react';
 import { MatchDetailTabs } from '@/components/match/MatchDetailTabs';
+import { PageLoader } from '@/components/ui/PageLoader';
 import { getMatchStatusDisplay, isMatchLive } from '@/lib/match-status';
 
 const fetcher = (url: string) => fetch(url).then((res) => res.json());
@@ -28,11 +29,7 @@ export default function MatchPage({ params }: { params: Promise<{ id: string }> 
 
   const apiError = data?.error || error?.message;
   if (isLoading) {
-    return (
-      <div className="text-center py-20 text-gray-500 animate-pulse font-black uppercase tracking-widest">
-        Gathering match data…
-      </div>
-    );
+    return <PageLoader context="match" />;
   }
   if (apiError || !data?.fixture) {
     return (
@@ -87,6 +84,7 @@ export default function MatchPage({ params }: { params: Promise<{ id: string }> 
               alt={match.teams.home.name}
               width={96}
               height={96}
+              priority
               className="w-20 h-20 md:w-28 md:h-28 object-contain drop-shadow-lg"
             />
             <Link href={`/team/${match.teams.home.id}`} className="font-black text-lg md:text-2xl text-white text-center hover:text-blue-400 transition truncate max-w-[220px]">

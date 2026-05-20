@@ -4,7 +4,7 @@ self.addEventListener('push', (event) => {
     body: data.body || 'New update from Ch\'hal Daro!',
     icon: '/logo.webp',
     badge: '/logo.webp',
-    data: { url: data.url ?? '/' },
+    data: { url: '/' },
     vibrate: [200, 100, 200],
     requireInteraction: false,
     tag: data.tag || 'soccer-update',
@@ -18,17 +18,22 @@ self.addEventListener('push', (event) => {
 
 self.addEventListener('notificationclick', (event) => {
   event.notification.close();
-  const urlToOpen = event.notification.data?.url || '/';
+  const homeUrl = new URL('/', self.location.origin).href;
 
   event.waitUntil(
     clients.matchAll({ type: 'window', includeUncontrolled: true }).then((windowClients) => {
-      for (let client of windowClients) {
-        if (client.url === urlToOpen && 'focus' in client) {
-          return client.focus();
+      for (const client of windowClients) {
+        if (client.url.startsWith(self.location.origin) && 'focus' in client) {
+          return client.focus().then((focused) => {
+            if ('navigate' in focused) {
+              return focused.navigate(homeUrl);
+            }
+            return focused;
+          });
         }
       }
       if (clients.openWindow) {
-        return clients.openWindow(urlToOpen);
+        return clients.openWindow(homeUrl);
       }
     })
   );
