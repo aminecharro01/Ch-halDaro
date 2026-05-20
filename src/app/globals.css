@@ -15,41 +15,57 @@
     --glass-border: rgba(255, 255, 255, 0.1);
     --glass-shadow: rgba(0, 0, 0, 0.3);
   }
+
+  html {
+    background-color: var(--bg-gradient-end);
+    overflow-x: hidden;
+    overscroll-behavior-y: none;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  body {
+    background-color: var(--bg-gradient-end);
+    color: var(--text-primary);
+    min-height: 100dvh;
+    overflow-x: hidden;
+    overscroll-behavior-y: none;
+  }
+
+  .app-shell {
+    position: relative;
+    isolation: isolate;
+    background: linear-gradient(135deg, var(--bg-gradient-start), var(--bg-gradient-end));
+    min-height: 100dvh;
+  }
 }
 
-body {
-  background: linear-gradient(135deg, var(--bg-gradient-start), var(--bg-gradient-end));
-  background-attachment: fixed;
-  color: var(--text-primary);
-  min-height: 100vh;
-  position: relative;
-}
-
-/* Background animated blobs for glassmorphism effect */
-body::before, body::after {
+/* Decorative blobs — inside app-shell, scroll with content (no fixed attachment white flash) */
+.app-shell::before,
+.app-shell::after {
   content: '';
   position: fixed;
   border-radius: 50%;
   filter: blur(100px);
   z-index: -1;
-  opacity: 0.6;
+  opacity: 0.5;
+  pointer-events: none;
   animation: blob-float 25s infinite alternate ease-in-out;
 }
 
-body::before {
+.app-shell::before {
   top: -10%;
   left: -10%;
-  width: 50vw;
-  height: 50vw;
-  background: rgba(34, 197, 94, 0.15); /* Green tint */
+  width: min(50vw, 420px);
+  height: min(50vw, 420px);
+  background: rgba(34, 197, 94, 0.12);
 }
 
-body::after {
+.app-shell::after {
   bottom: -10%;
   right: -10%;
-  width: 40vw;
-  height: 40vw;
-  background: rgba(99, 102, 241, 0.15); /* Blue tint */
+  width: min(40vw, 360px);
+  height: min(40vw, 360px);
+  background: rgba(99, 102, 241, 0.12);
   animation-delay: -10s;
 }
 
@@ -127,5 +143,15 @@ body::after {
 @layer base {
   * {
     border-color: var(--glass-border);
+  }
+}
+
+@layer utilities {
+  .scrollbar-hide {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+  .scrollbar-hide::-webkit-scrollbar {
+    display: none;
   }
 }

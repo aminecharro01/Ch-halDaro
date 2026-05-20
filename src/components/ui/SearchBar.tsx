@@ -72,7 +72,7 @@ export function SearchBar() {
       displayResults.players.length > 0);
 
   return (
-    <div ref={ref} className="relative w-full max-w-[14rem] sm:max-w-xs md:max-w-sm lg:w-64">
+    <div ref={ref} className="relative w-full min-w-0">
       {loading ? (
         <LoadingSpinner size="sm" className="absolute left-3 top-1/2 -translate-y-1/2" />
       ) : (

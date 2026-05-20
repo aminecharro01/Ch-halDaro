@@ -66,29 +66,29 @@ export default function Home() {
   const leagueGroups = Object.values(groupedMatches);
 
   return (
-    <div className="flex flex-col lg:flex-row gap-8">
+    <div className="flex flex-col lg:flex-row gap-6 lg:gap-8 min-w-0">
       {/* Sidebar */}
       <Sidebar />
 
       {/* Main Feed */}
-      <div className="flex-1 space-y-8 min-w-0">
-        <div className="flex flex-col gap-6">
-          <div className="flex items-center gap-4 bg-gray-900/40 p-2 rounded-2xl border border-white/5 self-start backdrop-blur-md">
+      <div className="flex-1 space-y-6 sm:space-y-8 min-w-0 w-full">
+        <div className="flex flex-col gap-4 sm:gap-6">
+          <div className="flex flex-wrap items-center gap-2 sm:gap-4 bg-gray-900/40 p-2 rounded-2xl border border-white/5 w-full sm:w-auto backdrop-blur-md">
             <button 
               onClick={() => changeDate(-1)}
-              className="px-4 py-2 text-xs font-bold text-gray-400 hover:text-white transition-colors"
+              className="flex-1 sm:flex-none px-3 sm:px-4 py-2 text-xs font-bold text-gray-400 hover:text-white transition-colors"
             >
               Yesterday
             </button>
             <button 
               onClick={() => setActiveDate(new Date().toISOString().split('T')[0])}
-              className={`px-4 py-2 text-xs font-bold rounded-xl transition-all ${isToday ? 'bg-white text-black' : 'text-gray-400 hover:text-white'}`}
+              className={`flex-1 sm:flex-none px-3 sm:px-4 py-2 text-xs font-bold rounded-xl transition-all ${isToday ? 'bg-white text-black' : 'text-gray-400 hover:text-white'}`}
             >
               Today
             </button>
             <button 
               onClick={() => changeDate(1)}
-              className="px-4 py-2 text-xs font-bold text-gray-400 hover:text-white transition-colors"
+              className="flex-1 sm:flex-none px-3 sm:px-4 py-2 text-xs font-bold text-gray-400 hover:text-white transition-colors"
             >
               Tomorrow
             </button>
