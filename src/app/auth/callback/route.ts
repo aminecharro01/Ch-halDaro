@@ -1,12 +1,13 @@
 import { NextResponse } from 'next/server'
-// The client you created from the Server-Side Auth instructions
 import { createClient } from '@/lib/supabase/server'
+import { syncAdminRole } from '@/lib/admin/bootstrap-role'
+import { ensureUserProfile } from '@/lib/auth/ensure-profile'
 
 export async function GET(request: Request) {
   const { searchParams, origin } = new URL(request.url)
   const code = searchParams.get('code')
-  // if "next" is in param, use it as the redirect URL
   const next = searchParams.get('next') ?? '/'
+  const safeNext = next.startsWith('/') && !next.startsWith('//') ? next : '/'
 
   if (code) {
     const supabase = await createClient()
@@ -14,7 +15,7 @@ export async function GET(request: Request) {
     if (!error) {
       const { data: { user } } = await supabase.auth.getUser()
       if (user) {
-        const { syncAdminRole } = await import('@/lib/admin/bootstrap-role')
+        await ensureUserProfile(supabase, user)
         await syncAdminRole(user.id, user.email)
         const { data: profile } = await supabase
           .from('profiles')
@@ -23,22 +24,20 @@ export async function GET(request: Request) {
           .maybeSingle()
         if (profile?.is_banned) {
           await supabase.auth.signOut()
-          return NextResponse.redirect(`${origin}/login?error=Your account has been banned`)
+          return NextResponse.redirect(`${origin}/login?error=${encodeURIComponent('Your account has been banned')}`)
         }
       }
-      const forwardedHost = request.headers.get('x-forwarded-host') // original origin before load balancer
+      const forwardedHost = request.headers.get('x-forwarded-host')
       const isLocalhost = process.env.NODE_ENV === 'development'
       if (isLocalhost) {
-        // we can be sure that there is no load balancer in between, so no need to watch for X-Forwarded-Host
-        return NextResponse.redirect(`${origin}${next}`)
+        return NextResponse.redirect(`${origin}${safeNext}`)
       } else if (forwardedHost) {
-        return NextResponse.redirect(`https://${forwardedHost}${next}`)
+        return NextResponse.redirect(`https://${forwardedHost}${safeNext}`)
       } else {
-        return NextResponse.redirect(`${origin}${next}`)
+        return NextResponse.redirect(`${origin}${safeNext}`)
       }
     }
   }
 
-  // return the user to an error page with instructions
   return NextResponse.redirect(`${origin}/auth/auth-code-error`)
 }

@@ -5,6 +5,41 @@ import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
 import { syncAdminRole } from '@/lib/admin/bootstrap-role'
 import { roleForEmail } from '@/lib/admin/emails'
+import { getAuthCallbackUrl } from '@/lib/auth/site-url'
+import { formatAuthError, GOOGLE_NOT_ENABLED_MESSAGE } from '@/lib/auth/auth-errors'
+
+export async function signInWithGoogle(formData: FormData) {
+  const supabase = await createClient()
+
+  if (!process.env.NEXT_PUBLIC_SUPABASE_URL || !process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY) {
+    redirect('/login?error=' + encodeURIComponent('Supabase not configured'))
+  }
+
+  const next = (formData.get('next') as string) || '/'
+  const safeNext = next.startsWith('/') && !next.startsWith('//') ? next : '/'
+
+  const { data, error } = await supabase.auth.signInWithOAuth({
+    provider: 'google',
+    options: {
+      redirectTo: getAuthCallbackUrl(safeNext),
+      queryParams: {
+        access_type: 'online',
+        prompt: 'select_account',
+      },
+    },
+  })
+
+  if (error) {
+    const msg = formatAuthError(error.message) || GOOGLE_NOT_ENABLED_MESSAGE
+    redirect('/login?error=' + encodeURIComponent(msg))
+  }
+
+  if (data.url) {
+    redirect(data.url)
+  }
+
+  redirect('/login?error=' + encodeURIComponent('Could not start Google sign-in'))
+}
 
 export async function login(formData: FormData) {
   const supabase = await createClient()
@@ -68,7 +103,7 @@ export async function signup(formData: FormData) {
     email,
     password,
     options: {
-      emailRedirectTo: `${process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000'}/auth/callback?next=/login`,
+      emailRedirectTo: getAuthCallbackUrl('/'),
     },
   })
 

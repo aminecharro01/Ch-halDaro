@@ -38,6 +38,33 @@ SUPABASE_SERVICE_ROLE_KEY=your_service_role_key
 
 Then **log out and log in again** with `aminecharro@gmail.com` → **Admin** link appears in the header.
 
+## Google sign-in (OAuth)
+
+Two different redirect URLs — do not mix them up:
+
+| Where | URL | Example |
+|-------|-----|---------|
+| **Google Cloud Console** → Authorized redirect URIs | Supabase callback | `https://htaliwzdyrrfehmmqemg.supabase.co/auth/v1/callback` |
+| **Supabase** → URL Configuration → Redirect URLs | Your app callback | `http://localhost:3000/auth/callback` |
+
+### Setup steps
+
+1. **Supabase** → **Authentication** → **Providers** → **Google** → enable  
+2. **Google Cloud Console** → Credentials → **OAuth 2.0 Client ID** (Web)  
+   - **Authorized redirect URIs**: only the Supabase URL above (shown on `/login` in the green box)  
+3. Paste **Client ID** + **Client Secret** into Supabase → Save  
+4. **Supabase** → **URL Configuration** → **Redirect URLs**:  
+   - `http://localhost:3000/auth/callback`  
+   - `https://your-production-domain/auth/callback`  
+5. `.env.local`: `NEXT_PUBLIC_SITE_URL=http://localhost:3000`
+
+### Common errors
+
+| Error | Cause |
+|-------|--------|
+| `provider is not enabled` | Google provider off in Supabase |
+| `redirect_uri_mismatch` | Wrong URI in **Google** console (used localhost instead of Supabase `/auth/v1/callback`) |
+
 ## Troubleshooting
 
 | Error | Fix |
