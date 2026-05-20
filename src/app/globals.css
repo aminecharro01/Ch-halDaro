@@ -19,7 +19,6 @@
   html {
     background-color: var(--bg-gradient-end);
     overflow-x: hidden;
-    overscroll-behavior-y: none;
     -webkit-tap-highlight-color: transparent;
   }
 
@@ -28,7 +27,6 @@
     color: var(--text-primary);
     min-height: 100dvh;
     overflow-x: hidden;
-    overscroll-behavior-y: none;
   }
 
   .app-shell {

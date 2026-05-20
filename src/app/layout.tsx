@@ -31,11 +31,11 @@ export default async function RootLayout({
   const admin = user ? await getAdminUser(user) : null;
 
   return (
-    <html lang="en" className={`h-full dark ${sofiaSans.variable}`} suppressHydrationWarning>
+    <html lang="en" className={`dark ${sofiaSans.variable}`} suppressHydrationWarning>
       <body
-        className={`${sofiaSans.className} min-h-dvh flex flex-col font-sans text-slate-50 antialiased overflow-x-hidden`}
+        className={`${sofiaSans.className} min-h-dvh font-sans text-slate-50 antialiased overflow-x-hidden`}
       >
-        <div className="app-shell flex min-h-dvh flex-1 flex-col">
+        <div className="app-shell min-h-dvh">
           <PendingFavoriteResume />
           <MaintenanceBanner />
           <Header user={!!user} isAdmin={!!admin} logoutAction={logout} />

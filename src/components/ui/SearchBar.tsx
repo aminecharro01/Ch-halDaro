@@ -87,7 +87,7 @@ export function SearchBar() {
         className="w-full pl-9 pr-3 py-1.5 rounded-full bg-white/5 border border-white/10 text-sm text-white placeholder:text-gray-500 focus:outline-none focus:border-green-500/50"
       />
       {open && q.length >= 2 && (
-        <div className="absolute top-full mt-2 w-72 sm:w-80 bg-gray-950 border border-white/10 rounded-2xl shadow-xl z-[100] max-h-80 overflow-y-auto right-0 md:right-auto md:left-0">
+        <div className="absolute top-full left-0 right-0 mt-2 bg-gray-950 border border-white/10 rounded-2xl shadow-xl z-[100] max-h-80 overflow-y-auto sm:left-0 sm:right-auto sm:w-80">
           {error && <p className="p-3 text-xs text-red-400">{error}</p>}
           {!loading && !hasResults && !error && (
             <p className="p-4 text-sm text-gray-500 text-center">No results for &quot;{q}&quot;</p>
