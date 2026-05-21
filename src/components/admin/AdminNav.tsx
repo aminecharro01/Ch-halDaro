@@ -2,14 +2,9 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { LayoutDashboard, Users, Bell, Settings, ArrowLeft } from 'lucide-react';
+import { LayoutDashboard, ArrowLeft } from 'lucide-react';
 
-const NAV = [
-  { href: '/admin', label: 'Dashboard', icon: LayoutDashboard, exact: true },
-  { href: '/admin/users', label: 'Users', icon: Users },
-  { href: '/admin/notifications', label: 'Notifications', icon: Bell },
-  { href: '/admin/settings', label: 'Settings', icon: Settings },
-];
+const NAV = [{ href: '/admin', label: 'Dashboard', icon: LayoutDashboard, exact: true }];
 
 export function AdminNav() {
   const pathname = usePathname();

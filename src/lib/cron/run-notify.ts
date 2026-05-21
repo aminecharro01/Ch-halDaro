@@ -7,8 +7,6 @@ import {
 } from '@/lib/supabase/queries';
 import { sendPush } from '@/lib/push/webpush';
 import { sendEmail, matchAlertEmailHtml } from '@/lib/email/send';
-import { fetchAppSettings } from '@/lib/admin/queries';
-
 function parseSubscriptionJson(raw: unknown): PushSubscriptionJSON | null {
   if (!raw) return null;
   if (typeof raw === 'object') return raw as PushSubscriptionJSON;
@@ -29,21 +27,14 @@ type PushSubscriptionJSON = {
 
 export type NotifyCronResult = {
   success: boolean;
-  disabled?: boolean;
-  reason?: string;
   status?: string;
   processed?: number;
   notificationsSent?: number;
   error?: string;
 };
 
-/** Core cron logic — used by GET /api/cron/notify and admin manual trigger. */
+/** Core cron logic — used by GET /api/cron/notify. */
 export async function runNotifyCron(): Promise<NotifyCronResult> {
-  const settings = await fetchAppSettings();
-  if (!settings.notifications_enabled) {
-    return { success: true, disabled: true, reason: 'notifications disabled by admin' };
-  }
-
   const liveMatches = await sportsDB.getLiveMatches();
   if (!liveMatches || liveMatches.length === 0) {
     return { success: true, status: 'No live matches found', processed: 0, notificationsSent: 0 };

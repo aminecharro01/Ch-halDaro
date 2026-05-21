@@ -2,7 +2,6 @@ import { revalidatePath } from 'next/cache';
 import { requireAdmin } from '@/lib/admin/require-admin';
 import { fetchAdminStats, fetchAdminUsers, fetchAppSettings, saveAppSettings, updateUserBan } from '@/lib/admin/queries';
 import { Users, Heart, Bell, Activity, Ban, Mail } from 'lucide-react';
-import { CronTriggerButton } from '@/components/admin/CronTriggerButton';
 import { createServiceClient } from '@/lib/supabase/admin';
 import { sendEmail } from '@/lib/email/send';
 
@@ -33,10 +32,13 @@ export default async function AdminDashboardPage() {
     'use server';
     const admin = await requireAdmin();
     const maintenance = formData.get('maintenance_mode') === 'on';
-    const notificationsEnabled = formData.get('notifications_enabled') === 'on';
     const banner = String(formData.get('banner_message') || '');
     await saveAppSettings(
-      { maintenance_mode: maintenance, notifications_enabled: notificationsEnabled, banner_message: banner },
+      {
+        maintenance_mode: maintenance,
+        notifications_enabled: true,
+        banner_message: banner,
+      },
       admin.user.id
     );
     revalidatePath('/admin');
@@ -90,39 +92,24 @@ export default async function AdminDashboardPage() {
         ))}
       </div>
 
-      <div className="grid xl:grid-cols-2 gap-6">
-        <div className="bg-gray-900/50 border border-white/10 rounded-2xl p-6 space-y-4">
-          <h2 className="font-bold text-white flex items-center gap-2"><Bell className="w-4 h-4 text-amber-400" /> Notifications control</h2>
-          <p className="text-sm text-gray-400">
-            Cron endpoint <code className="text-indigo-300">/api/cron/notify</code> checks live match changes (goals/events),
-            compares with <code className="text-indigo-300">match_states</code>, and sends push/e-mail alerts to subscribers.
-          </p>
-          <CronTriggerButton />
-        </div>
-
-        <div className="bg-gray-900/50 border border-white/10 rounded-2xl p-6 space-y-4">
-          <h2 className="font-bold text-white">App controls</h2>
-          <form action={saveAdminSettings} className="space-y-4">
-            <label className="flex items-center gap-3 text-sm text-gray-300">
-              <input type="checkbox" name="notifications_enabled" defaultChecked={settings.notifications_enabled} />
-              Enable live notifications globally
-            </label>
-            <label className="flex items-center gap-3 text-sm text-gray-300">
-              <input type="checkbox" name="maintenance_mode" defaultChecked={settings.maintenance_mode} />
-              Maintenance mode banner
-            </label>
-            <textarea
-              name="banner_message"
-              defaultValue={settings.banner_message}
-              rows={2}
-              placeholder="Optional banner message"
-              className="w-full bg-gray-950 border border-white/10 rounded-xl px-3 py-2 text-sm"
-            />
-            <button type="submit" className="px-4 py-2 rounded-lg bg-indigo-600 hover:bg-indigo-500 text-white text-sm font-bold">
-              Save controls
-            </button>
-          </form>
-        </div>
+      <div className="bg-gray-900/50 border border-white/10 rounded-2xl p-6 space-y-4 max-w-xl">
+        <h2 className="font-bold text-white">App controls</h2>
+        <form action={saveAdminSettings} className="space-y-4">
+          <label className="flex items-center gap-3 text-sm text-gray-300">
+            <input type="checkbox" name="maintenance_mode" defaultChecked={settings.maintenance_mode} />
+            Maintenance mode banner
+          </label>
+          <textarea
+            name="banner_message"
+            defaultValue={settings.banner_message}
+            rows={2}
+            placeholder="Optional banner message"
+            className="w-full bg-gray-950 border border-white/10 rounded-xl px-3 py-2 text-sm"
+          />
+          <button type="submit" className="px-4 py-2 rounded-lg bg-indigo-600 hover:bg-indigo-500 text-white text-sm font-bold">
+            Save controls
+          </button>
+        </form>
       </div>
 
       <div className="bg-gray-900/50 border border-white/10 rounded-2xl p-6 space-y-4">
