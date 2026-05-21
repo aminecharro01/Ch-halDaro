@@ -15,7 +15,13 @@ export function CronTriggerButton() {
       const res = await fetch('/api/admin/cron', { method: 'POST' });
       const data = await res.json();
       if (!res.ok) {
-        setResult(`Error: ${data.error || res.statusText}`);
+        const detail =
+          typeof data.body === 'object'
+            ? JSON.stringify(data.body, null, 2)
+            : data.body || '';
+        setResult(
+          `Error (${res.status}): ${data.error || res.statusText}${detail ? `\n${detail}` : ''}`
+        );
       } else {
         setResult(JSON.stringify(data, null, 2));
       }

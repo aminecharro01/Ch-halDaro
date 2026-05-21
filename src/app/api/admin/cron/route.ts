@@ -1,36 +1,35 @@
 import { NextResponse } from 'next/server';
 import { requireAdminApi } from '@/lib/admin/require-admin-api';
+import { runNotifyCron } from '@/lib/cron/run-notify';
 
+/** Admin manual trigger — runs cron in-process (no HTTP self-fetch / SITE_URL issues). */
 export async function POST() {
   const denied = await requireAdminApi();
   if (denied) return denied;
 
-  const base =
-    process.env.NEXT_PUBLIC_SITE_URL ||
-    (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : 'http://localhost:3000');
+  if (!process.env.SUPABASE_SERVICE_ROLE_KEY) {
+    return NextResponse.json(
+      {
+        error:
+          'SUPABASE_SERVICE_ROLE_KEY is missing on the server. Add it in Vercel env vars and redeploy.',
+      },
+      { status: 500 }
+    );
+  }
 
-  const headers: HeadersInit = {};
-  if (process.env.CRON_SECRET) {
-    headers.Authorization = `Bearer ${process.env.CRON_SECRET}`;
+  if (!process.env.THESPORTSDB_KEY) {
+    return NextResponse.json(
+      { error: 'THESPORTSDB_KEY is missing on the server.' },
+      { status: 500 }
+    );
   }
 
   try {
-    const res = await fetch(`${base}/api/cron/notify`, { headers, cache: 'no-store' });
-    const text = await res.text();
-    let body: unknown;
-    try {
-      body = JSON.parse(text);
-    } catch {
-      body = { raw: text };
-    }
-
-    if (!res.ok) {
-      return NextResponse.json({ error: 'Cron failed', status: res.status, body }, { status: res.status });
-    }
-
-    return NextResponse.json(body);
-  } catch (error) {
-    const message = error instanceof Error ? error.message : 'Cron request failed';
+    const result = await runNotifyCron();
+    return NextResponse.json(result);
+  } catch (error: unknown) {
+    const message = error instanceof Error ? error.message : 'Cron failed';
+    console.error('[Admin Cron]', error);
     return NextResponse.json({ error: message }, { status: 500 });
   }
 }
