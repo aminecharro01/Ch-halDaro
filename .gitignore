@@ -46,3 +46,8 @@ next-env.d.ts
 
 # local documentation (not tracked in git)
 /Doc/
+
+# Editor / OS
+.vscode/
+.idea/
+Thumbs.db

@@ -67,6 +67,33 @@ export default async function proxy(request: NextRequest) {
     const login = new URL('/login', request.url)
     login.searchParams.set('next', request.nextUrl.pathname)
     return NextResponse.redirect(login)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    
   }
 
   if (
