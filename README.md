@@ -1,3 +1,5 @@
+![Ch'hal Daro preview](docs/mockup.jpg)
+
 # Ch'hal Daro
 
 *"Ch'hal daro?"* ("what's the score?" in Darija) — a near real-time football live-scores platform with favorites, AI match analysis, and push notifications. Built as a Next.js BFF over the TheSportsDB API with Supabase for auth/data and a dark "live-center" UI.
